@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
@@ -18,7 +18,7 @@ import ProfilePage from "./pages/ProfilePage";
 const App: React.FC = () => {
     return (
         <AuthProvider>
-            <BrowserRouter>
+            <HashRouter>
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/login" element={<LoginPage />} />
@@ -47,7 +47,7 @@ const App: React.FC = () => {
                     {/* Fallback route */}
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </AuthProvider>
     );
 };

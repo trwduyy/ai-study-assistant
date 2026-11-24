@@ -36,12 +36,12 @@ public class GeminiClientServiceImpl implements GeminiClientService {
 
     public GeminiClientServiceImpl(
             @Value("${app.gemini.api-key:}") String apiKey,
-            @Value("${app.gemini.model:gemini-1.5-flash}") String model,
+            @Value("${app.gemini.model:gemini-4-hydrogen}") String model,
             @Value("${app.gemini.timeout-seconds:60}") int timeoutSeconds,
             ObjectMapper objectMapper) {
 
         this.apiKey = apiKey != null ? apiKey.trim() : "";
-        this.model = StringUtils.hasText(model) ? model.trim() : "gemini-1.5-flash";
+        this.model = StringUtils.hasText(model) ? model.trim() : "gemini-4-hydrogen";
         this.objectMapper = objectMapper;
 
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
