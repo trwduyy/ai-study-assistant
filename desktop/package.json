@@ -1,0 +1,45 @@
+{
+    "name": "ai-study-assistant-desktop",
+    "private": true,
+    "version": "1.0.0",
+    "description": "AI-powered desktop study assistant application for college students",
+    "author": "AI Study Assistant Team",
+    "type": "module",
+    "main": "dist-electron/main.js",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "build:electron": "esbuild electron/main.ts --bundle --platform=node --format=esm --external:electron --outfile=dist-electron/main.js && esbuild electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload.cjs && esbuild electron/preload.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload.js",
+        "electron:dev": "npm run build:electron && concurrently -k -s first \"npm run dev\" \"wait-on tcp:5173 && cross-env NODE_ENV=development electron .\"",
+        "electron:build": "npm run build && electron-builder --config electron-builder.yml",
+        "electron:build:win": "npm run build && electron-builder --win --config electron-builder.yml",
+        "electron:build:linux": "npm run build && electron-builder --linux --config electron-builder.yml",
+        "electron:build:mac": "npm run build && electron-builder --mac --config electron-builder.yml"
+    },
+    "dependencies": {
+        "axios": "^1.7.2",
+        "lucide-react": "^0.383.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-markdown": "^9.0.1",
+        "react-router-dom": "^6.23.1",
+        "recharts": "^2.12.7",
+        "remark-gfm": "^4.0.0"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.0",
+        "autoprefixer": "^10.4.19",
+        "concurrently": "^10.0.7",
+        "cross-env": "^10.1.0",
+        "electron": "^45.4.1",
+        "electron-builder": "^26.18.0",
+        "postcss": "^8.4.38",
+        "tailwindcss": "^3.4.3",
+        "typescript": "^5.4.5",
+        "vite": "^5.2.11",
+        "wait-on": "^9.5.1"
+    }
+}

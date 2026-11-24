@@ -1,0 +1,35 @@
+appId: com.aistudy.assistant
+productName: AI Study Assistant
+electronVersion: 45.4.1
+electronDist: node_modules/electron/dist
+directories:
+    output: release
+    buildResources: build
+files:
+    - dist/**
+    - dist-electron/**
+    - package.json
+win:
+    target:
+        - target: nsis
+          arch:
+              - x64
+    artifactName: "${productName}-Setup-${version}.${ext}"
+nsis:
+    oneClick: false
+    perMachine: false
+    allowToChangeInstallationDirectory: true
+    deleteAppDataOnUninstall: false
+linux:
+    target:
+        - target: AppImage
+          arch:
+              - x64
+    category: Education
+mac:
+    target:
+        - target: dmg
+          arch:
+              - x64
+              - arm64
+    category: public.app-category.education

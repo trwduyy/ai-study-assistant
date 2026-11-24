@@ -69,6 +69,7 @@ node_modules/
 desktop/dist/
 desktop/dist-electron/
 desktop/release/
+desktop/.cache/
 desktop/out/
 desktop/build/
 desktop/.eslintcache
