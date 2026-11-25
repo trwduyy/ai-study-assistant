@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,22 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
 
     @EntityGraph(attributePaths = {"owner", "course", "topic"})
     Optional<Material> findByIdAndDeletedAtIsNull(Long id);
+
+    @EntityGraph(attributePaths = {"owner", "course", "topic"})
+    List<Material> findByIdInAndDeletedAtIsNull(Collection<Long> ids);
+
+    List<Material> findByOwnerIdAndStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(Long ownerId, MaterialStatus status);
+
+    List<Material> findByCourseIdAndOwnerIdAndStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(
+            Long courseId,
+            Long ownerId,
+            MaterialStatus status
+    );
+
+    List<Material> findByTopicIdInAndStatusAndDeletedAtIsNullOrderByUpdatedAtDesc(
+            Collection<Long> topicIds,
+            MaterialStatus status
+    );
 
     Optional<Material> findByIdAndOwnerIdAndDeletedAtIsNull(Long id, Long ownerId);
 

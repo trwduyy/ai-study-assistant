@@ -3,14 +3,12 @@ package com.aistudy.assistant.common.exception;
 import com.aistudy.assistant.common.dto.ApiResponse;
 import com.aistudy.assistant.common.dto.FieldErrorDetail;
 import com.aistudy.assistant.common.filter.TraceIdFilter;
-import com.aistudy.assistant.exception.ApiException;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -49,16 +47,6 @@ public class GlobalExceptionHandler {
             log.warn("[traceId={}] Business error [{}]: {}", traceId, code.name(), ex.getMessage());
         }
         return buildErrorResponse(code, ex.getMessage(), ex.getFields(), traceId);
-    }
-
-    @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiResponse<Void>> handleLegacyApiException(ApiException ex, HttpServletRequest request) {
-        String traceId = resolveTraceId(request);
-        ErrorCode mappedCode = mapStatusToErrorCode(ex.getStatus());
-        log.warn("[traceId={}] Legacy API exception mapped to [{}]: {}", traceId, mappedCode.name(), ex.getMessage());
-        return ResponseEntity
-                .status(ex.getStatus())
-                .body(ApiResponse.error(mappedCode, ex.getMessage(), traceId));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -261,23 +249,5 @@ public class GlobalExceptionHandler {
             return headerTraceId;
         }
         return TraceIdFilter.generateTraceId();
-    }
-
-    private ErrorCode mapStatusToErrorCode(HttpStatus status) {
-        if (status == null) {
-            return ErrorCode.INTERNAL_ERROR;
-        }
-        return switch (status) {
-            case BAD_REQUEST -> ErrorCode.BAD_REQUEST;
-            case UNAUTHORIZED -> ErrorCode.UNAUTHENTICATED;
-            case FORBIDDEN -> ErrorCode.FORBIDDEN;
-            case NOT_FOUND -> ErrorCode.NOT_FOUND;
-            case CONFLICT -> ErrorCode.CONFLICT;
-            case UNPROCESSABLE_ENTITY -> ErrorCode.UNPROCESSABLE_ENTITY;
-            case TOO_MANY_REQUESTS -> ErrorCode.RATE_LIMITED;
-            case BAD_GATEWAY, SERVICE_UNAVAILABLE -> ErrorCode.AI_PROVIDER_ERROR;
-            case GATEWAY_TIMEOUT -> ErrorCode.AI_TIMEOUT;
-            default -> ErrorCode.INTERNAL_ERROR;
-        };
     }
 }

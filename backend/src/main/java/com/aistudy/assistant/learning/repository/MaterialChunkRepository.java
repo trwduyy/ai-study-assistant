@@ -10,12 +10,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface MaterialChunkRepository extends JpaRepository<MaterialChunk, Long> {
 
     List<MaterialChunk> findByMaterialIdOrderByChunkIndexAsc(Long materialId);
+
+    @Query("""
+            SELECT mc
+            FROM MaterialChunk mc
+            JOIN FETCH mc.material m
+            WHERE m.id IN :materialIds
+              AND m.deletedAt IS NULL
+            ORDER BY m.id ASC, mc.chunkIndex ASC
+            """)
+    List<MaterialChunk> findWithMaterialByMaterialIdIn(@Param("materialIds") Collection<Long> materialIds);
 
     long countByMaterialId(Long materialId);
 
