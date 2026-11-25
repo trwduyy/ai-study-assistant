@@ -18,6 +18,20 @@ public interface ClassJoinRequestRepository extends JpaRepository<ClassJoinReque
 
     boolean existsByClassroomIdAndStudentIdAndStatus(Long classId, Long studentId, JoinRequestStatus status);
 
+    @Query("""
+            SELECT COUNT(r)
+            FROM ClassJoinRequest r
+            JOIN ClassMember cm ON cm.classroom.id = r.classroom.id
+            WHERE cm.user.id = :teacherId
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+              AND cm.classRole IN (
+                  com.aistudy.assistant.classroom.entity.ClassRole.OWNER_TEACHER,
+                  com.aistudy.assistant.classroom.entity.ClassRole.CO_TEACHER
+              )
+              AND r.status = com.aistudy.assistant.classroom.entity.JoinRequestStatus.PENDING
+            """)
+    long countPendingForTeacher(@Param("teacherId") Long teacherId);
+
     @EntityGraph(attributePaths = {"classroom", "student", "decidedBy"})
     Optional<ClassJoinRequest> findWithDetailsByIdAndClassroomId(Long id, Long classroomId);
 

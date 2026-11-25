@@ -1,5 +1,6 @@
 package com.aistudy.assistant.learning.service;
 
+import com.aistudy.assistant.assignment.repository.AssignmentRepository;
 import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.identity.entity.UserRole;
 import com.aistudy.assistant.identity.entity.UserStatus;
@@ -35,6 +36,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +52,8 @@ class AnalyticsServiceTest {
     private QuizAttemptRepository quizAttemptRepository;
     @Mock
     private AttemptAnswerRepository attemptAnswerRepository;
+    @Mock
+    private AssignmentRepository assignmentRepository;
 
     @InjectMocks
     private AnalyticsServiceImpl analyticsService;
@@ -91,6 +96,10 @@ class AnalyticsServiceTest {
                         901L, 601L, "Quiz TCP", 8.0, 10.0, Instant.now()
                 )));
         when(attemptAnswerRepository.findTopicPerformance(10L, AttemptStatus.SUBMITTED)).thenReturn(List.of());
+        when(assignmentRepository.findUpcomingUnsubmittedForStudent(eq(10L), any(Instant.class), eq(PageRequest.of(0, 5))))
+                .thenReturn(List.of(new StudentDashboardResponse.DueAssignmentSummary(
+                        401L, 100L, "Lập trình Mạng", "Socket TCP", Instant.now().plusSeconds(3600), true, new BigDecimal("10.00")
+                )));
 
         AnalyticsOverviewResponse overview = analyticsService.getOverview();
         StudentDashboardResponse dashboard = analyticsService.getStudentDashboard();
@@ -100,7 +109,8 @@ class AnalyticsServiceTest {
         assertEquals(77.5, overview.accuracyRate());
         assertEquals(1, dashboard.recentAttempts().size());
         assertTrue(dashboard.upcomingEvents().isEmpty());
-        assertTrue(dashboard.dueAssignments().isEmpty());
+        assertEquals(1, dashboard.dueAssignments().size());
+        assertEquals(401L, dashboard.dueAssignments().get(0).assignmentId());
         assertEquals(0L, dashboard.unreadNotificationCount());
         assertTrue(dashboard.todayTasks().isEmpty());
     }

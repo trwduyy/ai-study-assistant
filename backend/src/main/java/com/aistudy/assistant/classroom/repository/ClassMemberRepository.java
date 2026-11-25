@@ -27,6 +27,18 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Long> 
     long countByClassroomIdAndStatus(Long classId, ClassMemberStatus status);
 
     @Query("""
+            SELECT COUNT(DISTINCT cm.classroom.id)
+            FROM ClassMember cm
+            WHERE cm.user.id = :teacherId
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+              AND cm.classRole IN (
+                  com.aistudy.assistant.classroom.entity.ClassRole.OWNER_TEACHER,
+                  com.aistudy.assistant.classroom.entity.ClassRole.CO_TEACHER
+              )
+            """)
+    long countActiveClassesForTeacher(@Param("teacherId") Long teacherId);
+
+    @Query("""
             SELECT cm
             FROM ClassMember cm
             JOIN FETCH cm.user

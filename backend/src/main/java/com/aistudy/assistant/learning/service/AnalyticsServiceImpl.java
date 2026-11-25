@@ -1,5 +1,6 @@
 package com.aistudy.assistant.learning.service;
 
+import com.aistudy.assistant.assignment.repository.AssignmentRepository;
 import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.learning.dto.AnalyticsOverviewResponse;
 import com.aistudy.assistant.learning.dto.FrequentMistakeResponse;
@@ -8,6 +9,7 @@ import com.aistudy.assistant.learning.dto.ScoreTrendItemResponse;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardOverviewSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardReviewTopicSummary;
+import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DueAssignmentSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.RecentAttemptSummary;
 import com.aistudy.assistant.learning.entity.AttemptStatus;
 import com.aistudy.assistant.learning.entity.Material;
@@ -41,6 +43,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final MaterialRepository materialRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final AttemptAnswerRepository attemptAnswerRepository;
+    private final AssignmentRepository assignmentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -119,6 +122,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 ))
                 .toList();
 
+        List<DueAssignmentSummary> dueAssignments = assignmentRepository.findUpcomingUnsubmittedForStudent(
+                userId,
+                Instant.now(),
+                PageRequest.of(0, 5)
+        );
+
         return new StudentDashboardResponse(
                 new DashboardOverviewSummary(
                         overview.totalCourses(),
@@ -129,7 +138,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 recentAttempts,
                 reviewTopics,
                 List.of(),
-                List.of(),
+                dueAssignments,
                 0L,
                 List.of()
         );
