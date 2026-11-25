@@ -3,13 +3,15 @@ package com.aistudy.assistant.service.impl;
 import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.summary.GenerateSummaryRequest;
 import com.aistudy.assistant.dto.summary.SummaryResponse;
-import com.aistudy.assistant.entity.ExtractionStatus;
 import com.aistudy.assistant.entity.LengthType;
-import com.aistudy.assistant.entity.Material;
+import com.aistudy.assistant.learning.entity.Material;
+import com.aistudy.assistant.learning.entity.MaterialChunk;
+import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.entity.Summary;
 import com.aistudy.assistant.exception.BadRequestException;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
-import com.aistudy.assistant.repository.MaterialRepository;
+import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
+import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.repository.SummaryRepository;
 import com.aistudy.assistant.service.GeminiClientService;
 import com.aistudy.assistant.service.SummaryService;
@@ -33,6 +35,7 @@ public class SummaryServiceImpl implements SummaryService {
     private static final int MAX_SINGLE_PASS_LENGTH = 12000;
 
     private final MaterialRepository materialRepository;
+    private final MaterialChunkRepository materialChunkRepository;
     private final SummaryRepository summaryRepository;
     private final GeminiClientService geminiClientService;
 
@@ -40,20 +43,20 @@ public class SummaryServiceImpl implements SummaryService {
     @Transactional
     public SummaryResponse generateSummary(GenerateSummaryRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        Material material = materialRepository.findByIdAndUserId(request.getMaterialId(), currentUserId)
+        Material material = materialRepository.findByIdAndOwnerIdAndDeletedAtIsNull(request.getMaterialId(), currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Material", "id", request.getMaterialId()));
 
-        if (material.getExtractionStatus() != ExtractionStatus.SUCCESS || !StringUtils.hasText(material.getExtractedText())) {
+        String documentText = loadExtractedText(material);
+        if (material.getStatus() != MaterialStatus.EXTRACTED || !StringUtils.hasText(documentText)) {
             throw new BadRequestException("Cannot generate summary: Document text extraction has not succeeded or is empty.");
         }
 
-        String documentText = material.getExtractedText();
         log.info("Generating summary for material {} ({} chars, lengthType={})",
                 material.getId(), documentText.length(), request.getLengthType());
 
         String contentToSummarize;
         if (documentText.length() > MAX_SINGLE_PASS_LENGTH) {
-            contentToSummarize = processLongDocumentChunks(documentText, material.getOriginalName());
+            contentToSummarize = processLongDocumentChunks(documentText, material.getFileName());
         } else {
             contentToSummarize = documentText;
         }
@@ -64,12 +67,12 @@ public class SummaryServiceImpl implements SummaryService {
                 Luôn phản hồi bằng tiếng Việt chuẩn mực, định dạng Markdown đẹp mắt.
                 """;
 
-        String userPrompt = buildSummaryPrompt(material.getOriginalName(), contentToSummarize, request.getLengthType());
+        String userPrompt = buildSummaryPrompt(material.getFileName(), contentToSummarize, request.getLengthType());
         String summaryContent = geminiClientService.generateText(systemPrompt, userPrompt);
 
         Summary summary = Summary.builder()
                 .material(material)
-                .user(material.getUser())
+                .user(material.getOwner())
                 .lengthType(request.getLengthType())
                 .content(summaryContent)
                 .build();
@@ -80,11 +83,17 @@ public class SummaryServiceImpl implements SummaryService {
         return SummaryResponse.fromEntity(savedSummary);
     }
 
+    private String loadExtractedText(Material material) {
+        return materialChunkRepository.findByMaterialIdOrderByChunkIndexAsc(material.getId()).stream()
+                .map(MaterialChunk::getContent)
+                .collect(Collectors.joining("\n\n"));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<SummaryResponse> getSummariesByMaterial(Long materialId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        if (!materialRepository.existsByIdAndUserId(materialId, currentUserId)) {
+        if (!materialRepository.existsByIdAndOwnerIdAndDeletedAtIsNull(materialId, currentUserId)) {
             throw new ResourceNotFoundException("Material", "id", materialId);
         }
 

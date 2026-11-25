@@ -2,6 +2,7 @@ package com.aistudy.assistant.entity;
 
 import com.aistudy.assistant.common.entity.BaseCreatedEntity;
 import com.aistudy.assistant.identity.entity.User;
+import com.aistudy.assistant.learning.entity.Material;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

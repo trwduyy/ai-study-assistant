@@ -2,6 +2,8 @@ package com.aistudy.assistant.entity;
 
 import com.aistudy.assistant.common.entity.BaseAuditableEntity;
 import com.aistudy.assistant.identity.entity.User;
+import com.aistudy.assistant.learning.entity.Course;
+import com.aistudy.assistant.learning.entity.Material;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

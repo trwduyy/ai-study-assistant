@@ -9,15 +9,17 @@ import com.aistudy.assistant.dto.chat.SendMessageRequest;
 import com.aistudy.assistant.entity.ChatMessage;
 import com.aistudy.assistant.entity.ChatRole;
 import com.aistudy.assistant.entity.ChatSession;
-import com.aistudy.assistant.entity.Course;
-import com.aistudy.assistant.entity.ExtractionStatus;
-import com.aistudy.assistant.entity.Material;
+import com.aistudy.assistant.learning.entity.Course;
+import com.aistudy.assistant.learning.entity.Material;
+import com.aistudy.assistant.learning.entity.MaterialChunk;
+import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.ChatMessageRepository;
 import com.aistudy.assistant.repository.ChatSessionRepository;
-import com.aistudy.assistant.repository.CourseRepository;
-import com.aistudy.assistant.repository.MaterialRepository;
+import com.aistudy.assistant.learning.repository.CourseRepository;
+import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
+import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.identity.repository.UserRepository;
 import com.aistudy.assistant.service.ChatService;
 import com.aistudy.assistant.service.GeminiClientService;
@@ -44,6 +46,7 @@ public class ChatServiceImpl implements ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final CourseRepository courseRepository;
     private final MaterialRepository materialRepository;
+    private final MaterialChunkRepository materialChunkRepository;
     private final UserRepository userRepository;
     private final GeminiClientService geminiClientService;
 
@@ -56,13 +59,13 @@ public class ChatServiceImpl implements ChatService {
 
         Course course = null;
         if (request.getCourseId() != null) {
-            course = courseRepository.findByIdAndUserId(request.getCourseId(), currentUserId)
+            course = courseRepository.findByIdAndOwnerIdAndDeletedAtIsNull(request.getCourseId(), currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
         }
 
         Material material = null;
         if (request.getMaterialId() != null) {
-            material = materialRepository.findByIdAndUserId(request.getMaterialId(), currentUserId)
+            material = materialRepository.findByIdAndOwnerIdAndDeletedAtIsNull(request.getMaterialId(), currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("Material", "id", request.getMaterialId()));
 
             if (course == null && material.getCourse() != null) {
@@ -194,15 +197,15 @@ public class ChatServiceImpl implements ChatService {
     private String resolveDocumentContext(ChatSession session) {
         if (session.getMaterial() != null) {
             Material material = session.getMaterial();
-            if (material.getExtractionStatus() == ExtractionStatus.SUCCESS && StringUtils.hasText(material.getExtractedText())) {
-                String text = material.getExtractedText();
+            String text = loadMaterialText(material.getId());
+            if (material.getStatus() == MaterialStatus.EXTRACTED && StringUtils.hasText(text)) {
                 if (text.length() > MAX_CONTEXT_LENGTH) {
                     text = text.substring(0, MAX_CONTEXT_LENGTH) + "\n...[Nội dung tài liệu đã được cắt gọn]";
                 }
-                return String.format("Tài liệu chính: '%s'\n%s", material.getOriginalName(), text);
+                return String.format("Tài liệu chính: '%s'\n%s", material.getFileName(), text);
             }
         } else if (session.getCourse() != null) {
-            List<Material> courseMaterials = materialRepository.findByCourseIdAndUserIdOrderByCreatedAtDesc(
+            List<Material> courseMaterials = materialRepository.findByCourseIdAndOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(
                     session.getCourse().getId(), session.getUser().getId()
             );
 
@@ -210,8 +213,9 @@ public class ChatServiceImpl implements ChatService {
             int currentLength = 0;
 
             for (Material m : courseMaterials) {
-                if (m.getExtractionStatus() == ExtractionStatus.SUCCESS && StringUtils.hasText(m.getExtractedText())) {
-                    String part = String.format("\n--- Tài liệu: %s ---\n%s\n", m.getOriginalName(), m.getExtractedText());
+                String text = loadMaterialText(m.getId());
+                if (m.getStatus() == MaterialStatus.EXTRACTED && StringUtils.hasText(text)) {
+                    String part = String.format("\n--- Tài liệu: %s ---\n%s\n", m.getFileName(), text);
                     if (currentLength + part.length() > MAX_CONTEXT_LENGTH) {
                         int remaining = MAX_CONTEXT_LENGTH - currentLength;
                         if (remaining > 500) {
@@ -230,6 +234,12 @@ public class ChatServiceImpl implements ChatService {
         }
 
         return "Không có tài liệu đính kèm cụ thể cho phiên chat này.";
+    }
+
+    private String loadMaterialText(Long materialId) {
+        return materialChunkRepository.findByMaterialIdOrderByChunkIndexAsc(materialId).stream()
+                .map(MaterialChunk::getContent)
+                .collect(Collectors.joining("\n\n"));
     }
 
     private String buildChatPrompt(String documentContext, List<ChatMessage> history, String userQuestion) {

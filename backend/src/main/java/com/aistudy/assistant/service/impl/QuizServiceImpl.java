@@ -10,10 +10,11 @@ import com.aistudy.assistant.dto.quiz.QuizResponse;
 import com.aistudy.assistant.dto.quiz.QuizSubmitResultResponse;
 import com.aistudy.assistant.dto.quiz.SubmitQuizRequest;
 import com.aistudy.assistant.entity.AttemptAnswer;
-import com.aistudy.assistant.entity.Course;
+import com.aistudy.assistant.learning.entity.Course;
 import com.aistudy.assistant.entity.Difficulty;
-import com.aistudy.assistant.entity.ExtractionStatus;
-import com.aistudy.assistant.entity.Material;
+import com.aistudy.assistant.learning.entity.Material;
+import com.aistudy.assistant.learning.entity.MaterialChunk;
+import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.entity.OptionLetter;
 import com.aistudy.assistant.entity.Quiz;
 import com.aistudy.assistant.entity.QuizAttempt;
@@ -22,8 +23,9 @@ import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.BadRequestException;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.AttemptAnswerRepository;
-import com.aistudy.assistant.repository.CourseRepository;
-import com.aistudy.assistant.repository.MaterialRepository;
+import com.aistudy.assistant.learning.repository.CourseRepository;
+import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
+import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.repository.QuizAttemptRepository;
 import com.aistudy.assistant.repository.QuizQuestionRepository;
 import com.aistudy.assistant.repository.QuizRepository;
@@ -59,6 +61,7 @@ public class QuizServiceImpl implements QuizService {
     private final AttemptAnswerRepository attemptAnswerRepository;
     private final CourseRepository courseRepository;
     private final MaterialRepository materialRepository;
+    private final MaterialChunkRepository materialChunkRepository;
     private final UserRepository userRepository;
     private final GeminiClientService geminiClientService;
     private final ObjectMapper objectMapper;
@@ -70,12 +73,12 @@ public class QuizServiceImpl implements QuizService {
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", currentUserId));
 
-        Course course = courseRepository.findByIdAndUserId(request.getCourseId(), currentUserId)
+        Course course = courseRepository.findByIdAndOwnerIdAndDeletedAtIsNull(request.getCourseId(), currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", request.getCourseId()));
 
         Material material = null;
         if (request.getMaterialId() != null) {
-            material = materialRepository.findByIdAndUserId(request.getMaterialId(), currentUserId)
+            material = materialRepository.findByIdAndOwnerIdAndDeletedAtIsNull(request.getMaterialId(), currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("Material", "id", request.getMaterialId()));
         }
 
@@ -137,7 +140,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public List<QuizResponse> getQuizzesByCourse(Long courseId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        if (!courseRepository.existsByIdAndUserId(courseId, currentUserId)) {
+        if (!courseRepository.existsByIdAndOwnerIdAndDeletedAtIsNull(courseId, currentUserId)) {
             throw new ResourceNotFoundException("Course", "id", courseId);
         }
 
@@ -262,27 +265,35 @@ public class QuizServiceImpl implements QuizService {
 
     private String resolveSourceText(Course course, Material material) {
         if (material != null) {
-            if (material.getExtractionStatus() == ExtractionStatus.SUCCESS && StringUtils.hasText(material.getExtractedText())) {
-                return material.getExtractedText();
+            String text = loadMaterialText(material.getId());
+            if (material.getStatus() == MaterialStatus.EXTRACTED && StringUtils.hasText(text)) {
+                return text;
             }
             throw new BadRequestException("Selected material has not been successfully extracted or is empty.");
         }
 
-        List<Material> materials = materialRepository.findByCourseIdAndUserIdOrderByCreatedAtDesc(
-                course.getId(), course.getUser().getId()
+        List<Material> materials = materialRepository.findByCourseIdAndOwnerIdAndDeletedAtIsNullOrderByCreatedAtDesc(
+                course.getId(), course.getOwner().getId()
         );
 
         StringBuilder sb = new StringBuilder();
         for (Material m : materials) {
-            if (m.getExtractionStatus() == ExtractionStatus.SUCCESS && StringUtils.hasText(m.getExtractedText())) {
-                sb.append("\n--- ").append(m.getOriginalName()).append(" ---\n");
-                sb.append(m.getExtractedText());
+            String text = loadMaterialText(m.getId());
+            if (m.getStatus() == MaterialStatus.EXTRACTED && StringUtils.hasText(text)) {
+                sb.append("\n--- ").append(m.getFileName()).append(" ---\n");
+                sb.append(text);
                 if (sb.length() > 25000) {
                     break;
                 }
             }
         }
         return sb.toString();
+    }
+
+    private String loadMaterialText(Long materialId) {
+        return materialChunkRepository.findByMaterialIdOrderByChunkIndexAsc(materialId).stream()
+                .map(MaterialChunk::getContent)
+                .collect(Collectors.joining("\n\n"));
     }
 
     private List<GeneratedQuestion> callAiToGenerateQuestions(

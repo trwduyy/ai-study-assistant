@@ -8,18 +8,20 @@ import com.aistudy.assistant.dto.quiz.QuizResponse;
 import com.aistudy.assistant.dto.quiz.QuizSubmitResultResponse;
 import com.aistudy.assistant.dto.quiz.SubmitQuizRequest;
 import com.aistudy.assistant.entity.AttemptAnswer;
-import com.aistudy.assistant.entity.Course;
+import com.aistudy.assistant.learning.entity.Course;
 import com.aistudy.assistant.entity.Difficulty;
-import com.aistudy.assistant.entity.ExtractionStatus;
-import com.aistudy.assistant.entity.Material;
+import com.aistudy.assistant.learning.entity.Material;
+import com.aistudy.assistant.learning.entity.MaterialChunk;
+import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.entity.OptionLetter;
 import com.aistudy.assistant.entity.Quiz;
 import com.aistudy.assistant.entity.QuizAttempt;
 import com.aistudy.assistant.entity.QuizQuestion;
 import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.repository.AttemptAnswerRepository;
-import com.aistudy.assistant.repository.CourseRepository;
-import com.aistudy.assistant.repository.MaterialRepository;
+import com.aistudy.assistant.learning.repository.CourseRepository;
+import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
+import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.repository.QuizAttemptRepository;
 import com.aistudy.assistant.repository.QuizQuestionRepository;
 import com.aistudy.assistant.repository.QuizRepository;
@@ -75,6 +77,9 @@ class QuizServiceTest {
     private MaterialRepository materialRepository;
 
     @Mock
+    private MaterialChunkRepository materialChunkRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -108,8 +113,8 @@ class QuizServiceTest {
 
         mockCourse = Course.builder()
                 .id(10L)
-                .user(mockUser)
-                .title("Database Systems")
+                .owner(mockUser)
+                .name("Database Systems")
                 .build();
 
         mockQuiz = Quiz.builder()
@@ -258,10 +263,9 @@ class QuizServiceTest {
         Material mockMaterial = Material.builder()
                 .id(20L)
                 .course(mockCourse)
-                .user(mockUser)
-                .originalName("indexing.pdf")
-                .extractionStatus(ExtractionStatus.SUCCESS)
-                .extractedText("Indexes allow database queries to search without scanning entire tables...")
+                .owner(mockUser)
+                .fileName("indexing.pdf")
+                .status(MaterialStatus.EXTRACTED)
                 .build();
 
         GenerateQuizRequest request = GenerateQuizRequest.builder()
@@ -273,8 +277,17 @@ class QuizServiceTest {
                 .build();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
-        when(courseRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(mockCourse));
-        when(materialRepository.findByIdAndUserId(20L, 1L)).thenReturn(Optional.of(mockMaterial));
+        when(courseRepository.findByIdAndOwnerIdAndDeletedAtIsNull(10L, 1L)).thenReturn(Optional.of(mockCourse));
+        when(materialRepository.findByIdAndOwnerIdAndDeletedAtIsNull(20L, 1L)).thenReturn(Optional.of(mockMaterial));
+        when(materialChunkRepository.findByMaterialIdOrderByChunkIndexAsc(20L)).thenReturn(List.of(
+                MaterialChunk.builder()
+                        .id(1L)
+                        .material(mockMaterial)
+                        .chunkIndex(0)
+                        .content("Indexes allow database queries to search without scanning entire tables...")
+                        .tokenCount(15)
+                        .build()
+        ));
         when(geminiClientService.generateStructuredJson(anyString(), anyString(), any())).thenReturn(mockAiJson);
         when(quizRepository.save(any(Quiz.class))).thenAnswer(invocation -> {
             Quiz q = invocation.getArgument(0);

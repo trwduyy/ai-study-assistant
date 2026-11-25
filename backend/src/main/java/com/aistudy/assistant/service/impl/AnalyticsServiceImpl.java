@@ -5,12 +5,12 @@ import com.aistudy.assistant.dto.analytics.AnalyticsOverviewResponse;
 import com.aistudy.assistant.dto.analytics.CourseAnalyticsResponse;
 import com.aistudy.assistant.dto.analytics.ReviewRecommendationResponse;
 import com.aistudy.assistant.dto.analytics.ScoreTrendItem;
-import com.aistudy.assistant.entity.Course;
+import com.aistudy.assistant.learning.entity.Course;
 import com.aistudy.assistant.entity.QuizAttempt;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.AttemptAnswerRepository;
-import com.aistudy.assistant.repository.CourseRepository;
-import com.aistudy.assistant.repository.MaterialRepository;
+import com.aistudy.assistant.learning.repository.CourseRepository;
+import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.repository.QuizAttemptRepository;
 import com.aistudy.assistant.repository.QuizRepository;
 import com.aistudy.assistant.service.AnalyticsService;
@@ -47,8 +47,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public AnalyticsOverviewResponse getOverviewAnalytics() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
-        long totalCourses = courseRepository.countByUserId(currentUserId);
-        long totalMaterials = materialRepository.countByUserId(currentUserId);
+        long totalCourses = courseRepository.countByOwnerIdAndDeletedAtIsNull(currentUserId);
+        long totalMaterials = materialRepository.countByOwnerIdAndDeletedAtIsNull(currentUserId);
         long totalQuizzesTaken = quizAttemptRepository.countByUserId(currentUserId);
 
         Double avgScoreVal = quizAttemptRepository.calculateAverageScoreByUserId(currentUserId);
@@ -77,10 +77,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Transactional(readOnly = true)
     public CourseAnalyticsResponse getCourseAnalytics(Long courseId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        Course course = courseRepository.findByIdAndUserId(courseId, currentUserId)
+        Course course = courseRepository.findByIdAndOwnerIdAndDeletedAtIsNull(courseId, currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
-        long materialCount = materialRepository.countByCourseId(courseId);
+        long materialCount = materialRepository.countByCourseIdAndDeletedAtIsNull(courseId);
         long quizzesCount = quizRepository.countByCourseId(courseId);
         long quizzesAttempted = quizAttemptRepository.countAttemptsByCourseIdAndUserId(courseId, currentUserId);
 
@@ -115,7 +115,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         return CourseAnalyticsResponse.builder()
                 .courseId(course.getId())
-                .courseTitle(course.getTitle())
+                .courseTitle(course.getName())
                 .materialCount(materialCount)
                 .quizzesCount(quizzesCount)
                 .quizzesAttempted(quizzesAttempted)
