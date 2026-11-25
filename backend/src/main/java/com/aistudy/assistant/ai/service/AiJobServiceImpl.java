@@ -8,6 +8,7 @@ import com.aistudy.assistant.ai.dto.CreateExplanationRequest;
 import com.aistudy.assistant.ai.dto.CreateSummaryRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiFlashcardsRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiQuizRequest;
+import com.aistudy.assistant.ai.dto.GenerateStudyPlanRequest;
 import com.aistudy.assistant.ai.entity.AiJob;
 import com.aistudy.assistant.ai.entity.AiJobStatus;
 import com.aistudy.assistant.ai.entity.AiJobType;
@@ -34,6 +35,8 @@ import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.TopicRepository;
+import com.aistudy.assistant.schedule.entity.Goal;
+import com.aistudy.assistant.schedule.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -58,6 +61,7 @@ public class AiJobServiceImpl implements AiJobService {
     private final MaterialRepository materialRepository;
     private final MaterialChunkRepository materialChunkRepository;
     private final FlashcardDeckRepository flashcardDeckRepository;
+    private final GoalRepository goalRepository;
     private final AiMapper aiMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -236,6 +240,38 @@ public class AiJobServiceImpl implements AiJobService {
         input.put("cardCount", request.cardCount() != null ? request.cardCount() : 10);
 
         return queueJob(userId, AiJobType.FLASHCARD, input);
+    }
+
+    @Override
+    @Transactional
+    public AiJobAcceptedResponse requestStudyPlan(GenerateStudyPlanRequest request) {
+        Long userId = SecurityUtils.currentUserId();
+        Goal goal = goalRepository.findById(request.goalId())
+                .orElseThrow(() -> new AppException(ErrorCode.GOAL_NOT_FOUND));
+        if (!goal.getUser().getId().equals(userId)) {
+            throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+        }
+
+        java.time.LocalDate fromDate = request.fromDate() != null
+                ? request.fromDate()
+                : java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        java.time.LocalDate toDate = request.toDate() != null
+                ? request.toDate()
+                : fromDate.plusDays(6);
+
+        if (toDate.isBefore(fromDate)) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR, "Ngày kết thúc (toDate) không được trước ngày bắt đầu (fromDate).");
+        }
+        if (java.time.temporal.ChronoUnit.DAYS.between(fromDate, toDate) > 31) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR, "Khoảng thời gian lập lộ trình tối đa là 31 ngày.");
+        }
+
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("goalId", goal.getId());
+        input.put("fromDate", fromDate.toString());
+        input.put("toDate", toDate.toString());
+
+        return queueJob(userId, AiJobType.PLAN, input);
     }
 
     private AiJobAcceptedResponse queueJob(Long userId, AiJobType type, Map<String, Object> input) {

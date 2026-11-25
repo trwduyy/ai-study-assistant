@@ -43,4 +43,25 @@ public interface FlashcardRepository extends JpaRepository<Flashcard, Long> {
             @Param("userId") Long userId,
             @Param("now") Instant now
     );
+
+    @Query("""
+            SELECT COUNT(f)
+            FROM Flashcard f
+            WHERE f.deck.owner.id = :userId
+              AND (
+                  NOT EXISTS (SELECT 1 FROM FlashcardReview r1
+                              WHERE r1.card.id = f.id AND r1.user.id = :userId)
+                  OR EXISTS (
+                      SELECT 1 FROM FlashcardReview r2
+                      WHERE r2.card.id = f.id AND r2.user.id = :userId
+                        AND r2.id = (SELECT MAX(r3.id) FROM FlashcardReview r3
+                                     WHERE r3.card.id = f.id AND r3.user.id = :userId)
+                        AND r2.nextReviewAt <= :now
+                  )
+              )
+            """)
+    long countDueCardsByUserId(
+            @Param("userId") Long userId,
+            @Param("now") Instant now
+    );
 }

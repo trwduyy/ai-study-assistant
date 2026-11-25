@@ -9,14 +9,17 @@ import com.aistudy.assistant.learning.dto.FrequentMistakeResponse;
 import com.aistudy.assistant.learning.dto.ReviewTopicResponse;
 import com.aistudy.assistant.learning.dto.ScoreTrendItemResponse;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse;
+import com.aistudy.assistant.learning.dto.StudentDashboardResponse.ActiveGoalSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardOverviewSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardReviewTopicSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DueAssignmentSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.RecentAttemptSummary;
+import com.aistudy.assistant.learning.dto.StudentDashboardResponse.TodayTaskSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.UpcomingEventSummary;
 import com.aistudy.assistant.learning.entity.AttemptStatus;
 import com.aistudy.assistant.learning.entity.Material;
 import com.aistudy.assistant.learning.entity.MaterialStatus;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardRepository;
 import com.aistudy.assistant.learning.repository.AttemptAnswerRepository;
 import com.aistudy.assistant.learning.repository.AttemptAnswerRepository.TopicPerformanceProjection;
 import com.aistudy.assistant.learning.repository.CourseRepository;
@@ -25,7 +28,10 @@ import com.aistudy.assistant.learning.repository.QuizAttemptRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository.OverviewStatsProjection;
 import com.aistudy.assistant.notification.repository.NotificationRepository;
 import com.aistudy.assistant.schedule.entity.Event;
+import com.aistudy.assistant.schedule.entity.GoalStatus;
 import com.aistudy.assistant.schedule.repository.EventRepository;
+import com.aistudy.assistant.schedule.repository.GoalRepository;
+import com.aistudy.assistant.schedule.repository.TaskRepository;
 import com.aistudy.assistant.schedule.service.EventValidationSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +42,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +62,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final NotificationRepository notificationRepository;
     private final ClassMemberRepository classMemberRepository;
     private final EventRepository eventRepository;
+    private final TaskRepository taskRepository;
+    private final GoalRepository goalRepository;
+    private final FlashcardRepository flashcardRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -163,6 +174,36 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 PageRequest.of(0, 5)
         );
         long unreadNotificationCount = notificationRepository.countByUserIdAndReadAtIsNull(userId);
+        LocalDate todayUtc = LocalDate.now(ZoneOffset.UTC);
+        List<TodayTaskSummary> todayTasks = taskRepository.findTodayTasksForDashboard(
+                        userId,
+                        todayUtc,
+                        PageRequest.of(0, 10)
+                ).stream()
+                .map(task -> new TodayTaskSummary(
+                        task.getId(),
+                        task.getGoal() != null ? task.getGoal().getId() : null,
+                        task.getTitle(),
+                        task.getTaskDate(),
+                        task.getPriority(),
+                        task.getStatus(),
+                        task.getRemindAt()
+                ))
+                .toList();
+        List<ActiveGoalSummary> activeGoals = goalRepository.findTop5ByUserIdAndStatusOrderByDueDateAscIdAsc(
+                        userId,
+                        GoalStatus.ACTIVE
+                ).stream()
+                .map(goal -> new ActiveGoalSummary(
+                        goal.getId(),
+                        goal.getTitle(),
+                        goal.getSubject(),
+                        goal.getDueDate(),
+                        goal.getPriority(),
+                        goal.getStatus()
+                ))
+                .toList();
+        long dueFlashcardsCount = flashcardRepository.countDueCardsByUserId(userId, now);
 
         return new StudentDashboardResponse(
                 new DashboardOverviewSummary(
@@ -176,7 +217,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 upcomingEvents,
                 dueAssignments,
                 unreadNotificationCount,
-                List.of()
+                todayTasks,
+                activeGoals,
+                dueFlashcardsCount
         );
     }
 

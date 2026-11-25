@@ -8,6 +8,7 @@ import com.aistudy.assistant.ai.dto.CreateExplanationRequest;
 import com.aistudy.assistant.ai.dto.CreateSummaryRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiFlashcardsRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiQuizRequest;
+import com.aistudy.assistant.ai.dto.GenerateStudyPlanRequest;
 
 import java.util.List;
 
@@ -30,4 +31,6 @@ public interface AiJobService {
     AiJobAcceptedResponse requestQuizGeneration(GenerateAiQuizRequest request);
 
     AiJobAcceptedResponse requestFlashcardGeneration(GenerateAiFlashcardsRequest request);
+
+    AiJobAcceptedResponse requestStudyPlan(GenerateStudyPlanRequest request);
 }

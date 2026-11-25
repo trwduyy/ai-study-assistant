@@ -239,7 +239,7 @@ Trả về các thẻ trong bộ thẻ chưa từng được ôn hoặc có `nex
 - **`PUT` Request:** Cập nhật `title`, `subject`, `dueDate`, `priority`, `status` (`ACTIVE`, `COMPLETED`, `CANCELLED`), `freeTime`.
 - **`DELETE` Response `200 OK`:** `data: null`.
 
-### 3.3 `GET /api/v1/tasks?date=&status=` & `POST /api/v1/tasks` — Task theo ngày (`S`)
+### 3.3 `GET /api/v1/tasks?from=&to=&status=&goalId=` & `POST /api/v1/tasks` — Task theo ngày (`S`)
 - **`POST` Request:**
 ```json
 {
@@ -270,21 +270,21 @@ Trả về các thẻ trong bộ thẻ chưa từng được ôn hoặc có `nex
 ```
 
 ### 3.4 `PUT /api/v1/tasks/{id}`, `DELETE /api/v1/tasks/{id}`, `PUT /api/v1/tasks/{id}/complete` (`S (chủ)`)
-- **`PUT /api/v1/tasks/{id}/complete` Response `200 OK`:** Trả về object Task với `"status": "DONE"`.
+- **`PUT /api/v1/tasks/{id}/complete` Response `200 OK`:** Trả về object Task với `"status": "DONE"` (hỗ trợ body tùy chọn `{ "completed": true | false }` để toggle `DONE` / `TODO`).
 
 ---
 
 ## 4. AI Study Plan — Đề xuất lộ trình học tập (Đợt 5B — FR-17)
 
 ### 4.1 `POST /api/v1/ai/study-plans` — Yêu cầu AI đề xuất lộ trình (`S`)
-Tổng hợp mục tiêu, lịch rảnh/bận và chủ đề cần ôn tập, tạo `ai_job` loại `PLAN` và trả `202 Accepted`.
+Tổng hợp mục tiêu, lịch rảnh/bận và chủ đề cần ôn tập trong khoảng `[fromDate, toDate]`, tạo `ai_job` loại `PLAN` và trả `202 Accepted`.
 
 - **Request:**
 ```json
 {
     "goalId": 51,
-    "horizonDays": 7,
-    "preferredHoursPerDay": 2
+    "fromDate": "2026-11-26",
+    "toDate": "2026-12-02"
 }
 ```
 - **Response `202 Accepted`:**
@@ -314,11 +314,15 @@ Tổng hợp mục tiêu, lịch rảnh/bận và chủ đề cần ôn tập, t
         "items": [
             {
                 "id": 601,
+                "planId": 88,
+                "planStatus": "PROPOSED",
                 "title": "Ôn lại lý thuyết Slow Start & Fast Recovery",
                 "plannedStart": "2026-11-26T12:30:00Z",
                 "plannedEnd": "2026-11-26T13:30:00Z",
                 "decision": "PENDING",
-                "taskId": null
+                "taskId": null,
+                "hasConflict": false,
+                "conflictingEvents": []
             }
         ],
         "createdAt": "2026-11-25T14:30:00Z",
@@ -329,7 +333,7 @@ Tổng hợp mục tiêu, lịch rảnh/bận và chủ đề cần ôn tập, t
 ```
 
 ### 4.3 `PUT /api/v1/study-plans/{id}/items/{itemId}` — Chấp nhận, sửa hoặc từ chối từng mục (`S (chủ)`)
-Khi `decision` là `ACCEPTED` hoặc `EDITED`, Backend tự động tạo một `Task` tương ứng gắn `taskId` vào `study_plan_items`.
+Khi `decision` là `ACCEPTED` hoặc `EDITED`, Backend tự động tạo một `Task` tương ứng gắn `taskId` vào `study_plan_items` và cập nhật trạng thái lộ trình (`PROPOSED` → `PARTIAL` → `CLOSED`).
 
 - **Request:**
 ```json
@@ -340,5 +344,5 @@ Khi `decision` là `ACCEPTED` hoặc `EDITED`, Backend tự động tạo một 
     "plannedEnd": "2026-11-26T14:00:00Z"
 }
 ```
-*(Giá trị `decision` hợp lệ: `ACCEPTED`, `EDITED`, `REJECTED`).*
-- **Response `200 OK`:** Trả về `StudyPlanItemResponse` kèm `taskId` đã tạo (nếu `ACCEPTED`/`EDITED`).
+*(Giá trị `decision` hợp lệ: `ACCEPTED`, `EDITED`, `REJECTED`. Nếu mục đã được xử lý trước đó sẽ trả `409 CONFLICT`.)*
+- **Response `200 OK`:** Trả về `StudyPlanItemResponse` kèm `taskId`, `planStatus`, `hasConflict`, `conflictingEvents`.

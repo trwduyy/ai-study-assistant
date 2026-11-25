@@ -16,6 +16,7 @@ import com.aistudy.assistant.learning.entity.AttemptStatus;
 import com.aistudy.assistant.learning.entity.Material;
 import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.learning.entity.Topic;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardRepository;
 import com.aistudy.assistant.learning.repository.AttemptAnswerRepository;
 import com.aistudy.assistant.learning.repository.AttemptAnswerRepository.TopicPerformanceProjection;
 import com.aistudy.assistant.learning.repository.CourseRepository;
@@ -27,7 +28,14 @@ import com.aistudy.assistant.schedule.entity.Event;
 import com.aistudy.assistant.schedule.entity.EventSource;
 import com.aistudy.assistant.schedule.entity.EventStatus;
 import com.aistudy.assistant.schedule.entity.EventType;
+import com.aistudy.assistant.schedule.entity.Goal;
+import com.aistudy.assistant.schedule.entity.GoalPriority;
+import com.aistudy.assistant.schedule.entity.GoalStatus;
+import com.aistudy.assistant.schedule.entity.Task;
+import com.aistudy.assistant.schedule.entity.TaskStatus;
 import com.aistudy.assistant.schedule.repository.EventRepository;
+import com.aistudy.assistant.schedule.repository.GoalRepository;
+import com.aistudy.assistant.schedule.repository.TaskRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +50,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,6 +80,12 @@ class AnalyticsServiceTest {
     private ClassMemberRepository classMemberRepository;
     @Mock
     private EventRepository eventRepository;
+    @Mock
+    private TaskRepository taskRepository;
+    @Mock
+    private GoalRepository goalRepository;
+    @Mock
+    private FlashcardRepository flashcardRepository;
 
     @InjectMocks
     private AnalyticsServiceImpl analyticsService;
@@ -139,6 +155,27 @@ class AnalyticsServiceTest {
                         401L, 100L, "Lập trình Mạng", "Socket TCP", Instant.now().plusSeconds(3600), true, new BigDecimal("10.00")
                 )));
         when(notificationRepository.countByUserIdAndReadAtIsNull(10L)).thenReturn(3L);
+        Goal activeGoal = Goal.builder()
+                .id(51L)
+                .title("Đạt 9.0 Mạng máy tính")
+                .subject("Mạng máy tính")
+                .dueDate(LocalDate.of(2026, 12, 20))
+                .priority(GoalPriority.HIGH)
+                .status(GoalStatus.ACTIVE)
+                .build();
+        Task todayTask = Task.builder()
+                .id(401L)
+                .goal(activeGoal)
+                .title("Ôn tập TCP")
+                .taskDate(LocalDate.now(ZoneOffset.UTC))
+                .priority(GoalPriority.HIGH)
+                .status(TaskStatus.TODO)
+                .build();
+        when(taskRepository.findTodayTasksForDashboard(eq(10L), any(LocalDate.class), eq(PageRequest.of(0, 10))))
+                .thenReturn(List.of(todayTask));
+        when(goalRepository.findTop5ByUserIdAndStatusOrderByDueDateAscIdAsc(10L, GoalStatus.ACTIVE))
+                .thenReturn(List.of(activeGoal));
+        when(flashcardRepository.countDueCardsByUserId(eq(10L), any(Instant.class))).thenReturn(7L);
 
         AnalyticsOverviewResponse overview = analyticsService.getOverview();
         StudentDashboardResponse dashboard = analyticsService.getStudentDashboard();
@@ -152,7 +189,11 @@ class AnalyticsServiceTest {
         assertEquals(1, dashboard.dueAssignments().size());
         assertEquals(401L, dashboard.dueAssignments().get(0).assignmentId());
         assertEquals(3L, dashboard.unreadNotificationCount());
-        assertTrue(dashboard.todayTasks().isEmpty());
+        assertEquals(1, dashboard.todayTasks().size());
+        assertEquals(401L, dashboard.todayTasks().get(0).taskId());
+        assertEquals(1, dashboard.activeGoals().size());
+        assertEquals(51L, dashboard.activeGoals().get(0).goalId());
+        assertEquals(7L, dashboard.dueFlashcardsCount());
     }
 
     @Test

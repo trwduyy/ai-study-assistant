@@ -10,11 +10,17 @@ import com.aistudy.assistant.ai.service.AiFlashcardValidator;
 import com.aistudy.assistant.ai.service.AiFlashcardValidator.GeneratedFlashcard;
 import com.aistudy.assistant.ai.service.AiQuizValidator;
 import com.aistudy.assistant.ai.service.AiQuizValidator.GeneratedQuestion;
+import com.aistudy.assistant.ai.service.AiStudyPlanValidator;
+import com.aistudy.assistant.ai.service.AiStudyPlanValidator.GeneratedStudyPlan;
 import com.aistudy.assistant.ai.service.ChunkGroundingService.ChunkCandidate;
 import com.aistudy.assistant.ai.service.ChunkRetrieverService;
+import com.aistudy.assistant.ai.worker.AiJobTxService.BusyEventSummary;
 import com.aistudy.assistant.ai.worker.AiJobTxService.ClaimedJobSnapshot;
+import com.aistudy.assistant.ai.worker.AiJobTxService.StudyPlanContext;
+import com.aistudy.assistant.ai.worker.AiJobTxService.WeakTopicSummary;
 import com.aistudy.assistant.common.exception.AppException;
 import com.aistudy.assistant.common.exception.ErrorCode;
+import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DueAssignmentSummary;
 import com.aistudy.assistant.learning.entity.QuestionType;
 import com.aistudy.assistant.learning.entity.QuizDifficulty;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +33,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,6 +55,7 @@ public class AiJobWorker {
     public static final String PROMPT_VERSION_SUMMARY = "summary-v2.0";
     public static final String PROMPT_VERSION_EXPLAIN = "explain-v2.0";
     public static final String PROMPT_VERSION_QUIZ = "quiz-v2.0";
+    public static final String PROMPT_VERSION_PLAN = "plan-v2.0";
     private static final String NOT_ENOUGH_INFO_MESSAGE = "Tài liệu hiện tại chưa có thông tin để kết luận";
     private static final int MAX_CONTEXT_CHARS = 14000;
     private static final int MAX_QUIZ_VALIDATION_RETRIES = 2;
@@ -57,6 +66,7 @@ public class AiJobWorker {
     private final ChunkRetrieverService chunkRetrieverService;
     private final AiQuizValidator aiQuizValidator;
     private final AiFlashcardValidator aiFlashcardValidator;
+    private final AiStudyPlanValidator aiStudyPlanValidator;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -86,6 +96,7 @@ public class AiJobWorker {
                 case EXPLAIN -> handleExplainJob(job);
                 case QUIZ -> handleQuizJob(job);
                 case FLASHCARD -> handleFlashcardJob(job);
+                case PLAN -> handlePlanJob(job);
                 default -> aiJobTxService.failJob(
                         job.jobId(),
                         ErrorCode.UNPROCESSABLE_ENTITY.name(),
@@ -381,6 +392,141 @@ public class AiJobWorker {
                 StringUtils.hasText(deckTitle) ? deckTitle.trim() : "Flashcards ôn tập AI",
                 validatedCards
         );
+    }
+
+    private void handlePlanJob(ClaimedJobSnapshot job) {
+        Map<String, Object> input = job.inputJson() != null ? job.inputJson() : Map.of();
+        Long goalId = asLong(input.get("goalId"));
+        if (goalId == null) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR, "Thiếu goalId cho tác vụ lập lộ trình học tập.");
+        }
+
+        String fromDateRaw = asString(input.get("fromDate"));
+        String toDateRaw = asString(input.get("toDate"));
+        LocalDate fromDate = StringUtils.hasText(fromDateRaw)
+                ? LocalDate.parse(fromDateRaw.trim())
+                : LocalDate.now(ZoneOffset.UTC);
+        LocalDate toDate = StringUtils.hasText(toDateRaw)
+                ? LocalDate.parse(toDateRaw.trim())
+                : fromDate.plusDays(6);
+
+        StudyPlanContext context = aiJobTxService.loadStudyPlanContext(job.userId(), goalId, fromDate, toDate);
+
+        String freeTimeJson;
+        try {
+            freeTimeJson = objectMapper.writeValueAsString(context.freeTime());
+        } catch (Exception ex) {
+            freeTimeJson = "{}";
+        }
+
+        StringBuilder busyBuilder = new StringBuilder();
+        if (context.busyEvents().isEmpty()) {
+            busyBuilder.append("- Chưa có sự kiện bận nào trong khoảng thời gian này.\n");
+        } else {
+            for (BusyEventSummary event : context.busyEvents()) {
+                busyBuilder.append(String.format(
+                        "- [%s] %s: %s -> %s\n",
+                        event.type(), event.title(), event.startAt(), event.endAt()
+                ));
+            }
+        }
+
+        StringBuilder assignmentBuilder = new StringBuilder();
+        if (context.dueAssignments().isEmpty()) {
+            assignmentBuilder.append("- Không có bài tập sắp đến hạn chưa nộp.\n");
+        } else {
+            for (DueAssignmentSummary assignment : context.dueAssignments()) {
+                assignmentBuilder.append(String.format(
+                        "- %s (Lớp: %s, Hạn nộp: %s)\n",
+                        assignment.title(), assignment.className(), assignment.dueAt()
+                ));
+            }
+        }
+
+        StringBuilder weakTopicsBuilder = new StringBuilder();
+        if (context.weakTopics().isEmpty()) {
+            weakTopicsBuilder.append("- Chưa có thống kê chủ đề yếu cụ thể.\n");
+        } else {
+            for (WeakTopicSummary topic : context.weakTopics()) {
+                weakTopicsBuilder.append(String.format(
+                        "- %s (Độ chính xác: %.1f%% trên %d câu)\n",
+                        topic.topicTitle(), topic.accuracyRate(), topic.sampleSize()
+                ));
+            }
+        }
+
+        String systemPrompt = """
+                Bạn là trợ lý lập kế hoạch học tập cá nhân hóa cho sinh viên đại học.
+                Nhiệm vụ:
+                1. Đề xuất danh sách buổi học cụ thể trong khoảng ngày yêu cầu dựa trên mục tiêu, khung giờ rảnh và lịch bận hiện có.
+                2. Tuyệt đối tránh xếp chồng lên các khung giờ đã bận ở danh sách sự kiện hiện có.
+                3. Ưu tiên bài tập sắp đến hạn và các chủ đề có độ chính xác thấp.
+                4. Toàn bộ plannedStart và plannedEnd phải là chuỗi thời gian UTC định dạng ISO-8601 kết thúc bằng 'Z' (ví dụ 2026-11-26T12:30:00Z).
+                5. Trả về đúng JSON theo schema, không kèm văn bản ngoài JSON.
+                """;
+
+        String userPrompt = String.format("""
+                Mục tiêu học tập:
+                - Tiêu đề: %s
+                - Môn học: %s
+                - Hạn mục tiêu: %s
+                - Mức độ ưu tiên: %s
+                - Thời gian rảnh ưu tiên (JSON): %s
+                - Khoảng ngày lập lịch: từ %s đến %s
+
+                Sự kiện đã bận trên lịch (tránh trùng giờ):
+                %s
+                Bài tập sắp đến hạn chưa nộp:
+                %s
+                Chủ đề cần ưu tiên ôn tập:
+                %s
+                Hãy đề xuất 3 đến 10 buổi học hợp lý kèm lý do ngắn gọn (rationale).
+                """,
+                context.goalTitle(),
+                StringUtils.hasText(context.subject()) ? context.subject() : "Tổng hợp",
+                context.goalDueDate() != null ? context.goalDueDate() : "Không giới hạn",
+                context.priority() != null ? context.priority().name() : "MEDIUM",
+                freeTimeJson,
+                fromDate,
+                toDate,
+                busyBuilder,
+                assignmentBuilder,
+                weakTopicsBuilder
+        );
+
+        Map<String, Object> schema = aiStudyPlanValidator.buildStudyPlanJsonSchema();
+        GeneratedStudyPlan validatedPlan = null;
+        AppException lastValidationError = null;
+
+        for (int attempt = 0; attempt <= MAX_QUIZ_VALIDATION_RETRIES; attempt++) {
+            try {
+                String prompt = attempt == 0
+                        ? userPrompt
+                        : userPrompt + "\n\nLƯU Ý SỬA LỖI ĐỊNH DẠNG LẦN TRƯỚC: " + lastValidationError.getMessage();
+                String rawJson = geminiClientService.generateStructuredJson(systemPrompt, prompt, schema);
+                validatedPlan = aiStudyPlanValidator.parseAndValidate(rawJson);
+                break;
+            } catch (AppException ex) {
+                if (ex.getErrorCode() == ErrorCode.AI_OUTPUT_INVALID && attempt < MAX_QUIZ_VALIDATION_RETRIES) {
+                    lastValidationError = ex;
+                    log.warn("StudyPlan JSON validation failed for job {} (attempt {}/{}): {}",
+                            job.jobId(), attempt + 1, MAX_QUIZ_VALIDATION_RETRIES + 1, ex.getMessage());
+                    continue;
+                }
+                throw ex;
+            }
+        }
+
+        if (validatedPlan == null) {
+            throw lastValidationError != null
+                    ? lastValidationError
+                    : new AppException(ErrorCode.AI_OUTPUT_INVALID);
+        }
+
+        String modelName = StringUtils.hasText(geminiClientService.getModel())
+                ? geminiClientService.getModel().trim()
+                : "gemini";
+        aiJobTxService.completeStudyPlanJob(job.jobId(), validatedPlan, modelName, PROMPT_VERSION_PLAN);
     }
 
     private Map<String, Object> parseExplainOutput(
