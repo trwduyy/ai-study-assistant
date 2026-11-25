@@ -23,6 +23,12 @@ public interface AiJobRepository extends JpaRepository<AiJob, String> {
 
     List<AiJob> findTop20ByStatusOrderByCreatedAtAsc(AiJobStatus status);
 
+    long countByUserIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            Long userId,
+            Instant startInclusive,
+            Instant endExclusive
+    );
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             UPDATE AiJob j

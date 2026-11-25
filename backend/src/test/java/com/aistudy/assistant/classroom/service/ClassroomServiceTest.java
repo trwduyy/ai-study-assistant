@@ -1,5 +1,6 @@
 package com.aistudy.assistant.classroom.service;
 
+import com.aistudy.assistant.admin.service.AuditLogService;
 import com.aistudy.assistant.classroom.dto.AddCoTeacherRequest;
 import com.aistudy.assistant.classroom.dto.ClassJoinRequestResponse;
 import com.aistudy.assistant.classroom.dto.ClassroomResponse;
@@ -104,6 +105,9 @@ class ClassroomServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private AuditLogService auditLogService;
+
     private ClassroomServiceImpl classroomService;
 
     private User teacherUser;
@@ -139,7 +143,8 @@ class ClassroomServiceTest {
                 fileStorageService,
                 new ClassroomMapper(),
                 immediateTxTemplate,
-                eventPublisher
+                eventPublisher,
+                auditLogService
         );
 
         teacherUser = User.builder()

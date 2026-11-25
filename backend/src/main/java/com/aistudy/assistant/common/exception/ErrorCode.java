@@ -68,6 +68,8 @@ public enum ErrorCode {
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông báo."),
     CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy cuộc trò chuyện."),
     MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tin nhắn."),
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy báo cáo."),
+    SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy cấu hình hệ thống."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "Đường dẫn API không tồn tại."),
 
     // 405 Method Not Allowed

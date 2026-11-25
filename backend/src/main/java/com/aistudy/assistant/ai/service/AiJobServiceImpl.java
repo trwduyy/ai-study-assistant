@@ -1,5 +1,6 @@
 package com.aistudy.assistant.ai.service;
 
+import com.aistudy.assistant.admin.service.AiQuotaService;
 import com.aistudy.assistant.ai.dto.AiJobAcceptedResponse;
 import com.aistudy.assistant.ai.dto.AiJobCancelResponse;
 import com.aistudy.assistant.ai.dto.AiJobResponse;
@@ -64,6 +65,7 @@ public class AiJobServiceImpl implements AiJobService {
     private final GoalRepository goalRepository;
     private final AiMapper aiMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final AiQuotaService aiQuotaService;
 
     @Override
     @Transactional(readOnly = true)
@@ -275,6 +277,7 @@ public class AiJobServiceImpl implements AiJobService {
     }
 
     private AiJobAcceptedResponse queueJob(Long userId, AiJobType type, Map<String, Object> input) {
+        aiQuotaService.checkAndEnforceDailyQuota(userId);
         User user = userRepository.getReferenceById(userId);
         AiJob job = AiJob.builder()
                 .id(UUID.randomUUID().toString())

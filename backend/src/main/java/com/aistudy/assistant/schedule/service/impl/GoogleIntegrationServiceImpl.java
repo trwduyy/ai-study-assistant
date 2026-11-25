@@ -1,5 +1,6 @@
 package com.aistudy.assistant.schedule.service.impl;
 
+import com.aistudy.assistant.admin.service.SystemSettingService;
 import com.aistudy.assistant.common.exception.AppException;
 import com.aistudy.assistant.common.exception.ErrorCode;
 import com.aistudy.assistant.common.security.TokenEncryptionService;
@@ -64,6 +65,7 @@ public class GoogleIntegrationServiceImpl implements GoogleIntegrationService {
     private final GoogleOAuthStateService stateService;
     private final GoogleCalendarClient googleCalendarClient;
     private final TransactionTemplate transactionTemplate;
+    private final SystemSettingService systemSettingService;
 
     @Value("${app.google.allow-personal-accounts:false}")
     private boolean allowPersonalAccounts;
@@ -259,7 +261,11 @@ public class GoogleIntegrationServiceImpl implements GoogleIntegrationService {
     }
 
     private void enforceGooglePolicy(String email) {
-        if (allowPersonalAccounts) {
+        boolean allowPersonal = systemSettingService.getBooleanSetting(
+                SystemSettingService.KEY_GOOGLE_ALLOW_PERSONAL_ACCOUNTS,
+                allowPersonalAccounts
+        );
+        if (allowPersonal) {
             return;
         }
         String normalized = email != null ? email.trim().toLowerCase(Locale.ROOT) : "";

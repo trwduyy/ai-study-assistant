@@ -1,5 +1,6 @@
 package com.aistudy.assistant.classroom.service.impl;
 
+import com.aistudy.assistant.admin.service.AuditLogService;
 import com.aistudy.assistant.classroom.dto.AddCoTeacherRequest;
 import com.aistudy.assistant.classroom.dto.ClassJoinRequestResponse;
 import com.aistudy.assistant.classroom.dto.ClassMaterialResponse;
@@ -94,6 +95,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final ClassroomMapper classroomMapper;
     private final TransactionTemplate transactionTemplate;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditLogService auditLogService;
 
     @Override
     @Transactional
@@ -205,10 +207,18 @@ public class ClassroomServiceImpl implements ClassroomService {
             throw new AppException(ErrorCode.VERSION_CONFLICT);
         }
 
+        ClassroomStatus previousStatus = classroom.getStatus();
         classroom.setStatus(request.getStatus());
         Classroom updated = classroomRepository.saveAndFlush(classroom);
         long memberCount = classMemberRepository.countByClassroomIdAndStatus(classId, ClassMemberStatus.ACTIVE);
 
+        auditLogService.record(
+                currentUserId,
+                "CLASSROOM_STATUS_UPDATED",
+                "CLASSROOM",
+                classId,
+                Map.of("oldStatus", previousStatus.name(), "newStatus", updated.getStatus().name())
+        );
         log.info("Updated classroom status id={} to {} by userId={}",
                 classId, updated.getStatus(), currentUserId);
         return classroomMapper.toClassroomResponse(updated, teacherMember.getClassRole(), memberCount);
@@ -341,6 +351,17 @@ public class ClassroomServiceImpl implements ClassroomService {
         }
 
         ClassJoinRequest saved = classJoinRequestRepository.save(joinRequest);
+        auditLogService.record(
+                currentUserId,
+                "CLASS_JOIN_REQUEST_" + saved.getStatus().name(),
+                "CLASS_JOIN_REQUEST",
+                saved.getId(),
+                Map.of(
+                        "classId", classId,
+                        "studentId", student.getId(),
+                        "decision", saved.getStatus().name()
+                )
+        );
         Map<String, Object> payload = buildJoinDecisionNotificationPayload(classroom, saved, decider);
         notificationOutboxService.enqueueForAllChannels(
                 student,
@@ -451,6 +472,13 @@ public class ClassroomServiceImpl implements ClassroomService {
         target.setStatus(ClassMemberStatus.REMOVED);
         classMemberRepository.save(target);
         eventPublisher.publishEvent(new ClassMemberDeactivatedEvent(classId, targetUserId));
+        auditLogService.record(
+                currentUserId,
+                "CLASS_MEMBER_REMOVED",
+                "CLASSROOM",
+                classId,
+                Map.of("targetUserId", targetUserId, "previousRole", target.getClassRole().name())
+        );
 
         log.info("Removed member userId={} from classroom id={} by teacher userId={}",
                 targetUserId, classId, currentUserId);

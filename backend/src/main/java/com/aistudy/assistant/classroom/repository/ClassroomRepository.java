@@ -1,5 +1,6 @@
 package com.aistudy.assistant.classroom.repository;
 
+import com.aistudy.assistant.admin.dto.AdminClassroomResponse;
 import com.aistudy.assistant.classroom.dto.ClassroomResponse;
 import com.aistudy.assistant.classroom.entity.Classroom;
 import com.aistudy.assistant.classroom.entity.ClassroomStatus;
@@ -22,6 +23,49 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Long> {
 
     @EntityGraph(attributePaths = "owner")
     Optional<Classroom> findWithOwnerById(Long id);
+
+    @Query(
+            value = """
+                    SELECT new com.aistudy.assistant.admin.dto.AdminClassroomResponse(
+                        c.id,
+                        c.code,
+                        c.name,
+                        c.description,
+                        c.subject,
+                        c.status,
+                        o.id,
+                        o.fullName,
+                        o.email,
+                        (SELECT COUNT(m2) FROM ClassMember m2
+                         WHERE m2.classroom.id = c.id
+                           AND m2.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE),
+                        c.version,
+                        c.createdAt,
+                        c.updatedAt
+                    )
+                    FROM Classroom c
+                    JOIN c.owner o
+                    WHERE (:status IS NULL OR c.status = :status)
+                      AND (:keyword IS NULL
+                           OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                           OR LOWER(COALESCE(c.subject, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                           OR LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                    """,
+            countQuery = """
+                    SELECT COUNT(c)
+                    FROM Classroom c
+                    WHERE (:status IS NULL OR c.status = :status)
+                      AND (:keyword IS NULL
+                           OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                           OR LOWER(COALESCE(c.subject, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                           OR LOWER(c.code) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                    """
+    )
+    Page<AdminClassroomResponse> findProjectedAllForAdmin(
+            @Param("status") ClassroomStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
     @Query(
             value = """
