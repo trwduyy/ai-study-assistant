@@ -4,7 +4,9 @@ import {
     AuthResponse,
     ChangePasswordRequest,
     LoginRequest,
+    LogoutRequest,
     RegisterRequest,
+    TokenRefreshResponse,
     UpdateProfileRequest,
     User
 } from "../types";
@@ -20,18 +22,30 @@ export const authService = {
         return response.data.data;
     },
 
+    async refresh(refreshToken: string): Promise<TokenRefreshResponse> {
+        const response = await apiClient.post<ApiResponse<TokenRefreshResponse>>("/auth/refresh", {
+            refreshToken
+        });
+        return response.data.data;
+    },
+
+    async logout(refreshToken: string): Promise<void> {
+        const payload: LogoutRequest = { refreshToken };
+        await apiClient.post<ApiResponse<null>>("/auth/logout", payload);
+    },
+
     async getCurrentUser(): Promise<User> {
         const response = await apiClient.get<ApiResponse<User>>("/users/me");
         return response.data.data;
     },
 
-    async changePassword(data: ChangePasswordRequest): Promise<void> {
-        await apiClient.put<ApiResponse<null>>("/users/me/password", data);
+    async updateProfile(data: UpdateProfileRequest): Promise<User> {
+        const response = await apiClient.put<ApiResponse<User>>("/users/me", data);
+        return response.data.data;
     },
 
-    async updateProfile(data: UpdateProfileRequest): Promise<User> {
-        const response = await apiClient.put<ApiResponse<User>>("/users/me/profile", data);
-        return response.data.data;
+    async changePassword(data: ChangePasswordRequest): Promise<void> {
+        await apiClient.put<ApiResponse<null>>("/users/me/password", data);
     }
 };
 

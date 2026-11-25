@@ -1,103 +1,98 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import authService from "../services/authService";
-import { LoginRequest, RegisterRequest, User } from "../types";
+import tokenStorage from "../services/tokenStorage";
+import { AuthResponse, LoginRequest, RegisterRequest, User } from "../types";
 
-interface AuthContextType {
+interface AuthContextValue {
     user: User | null;
-    token: string | null;
+    accessToken: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (data: LoginRequest) => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
-    logout: () => void;
-    updateUser: (updatedUser: User) => void;
+    logout: () => Promise<void>;
+    updateUser: (user: User) => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem("user");
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+function saveSession(session: AuthResponse): void {
+    tokenStorage.setSession(session.accessToken, session.refreshToken, session.user);
+}
+
+export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(() => tokenStorage.getUser());
+    const [accessToken, setAccessToken] = useState<string | null>(() => tokenStorage.getAccessToken());
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => tokenStorage.subscribe(() => {
+        setAccessToken(tokenStorage.getAccessToken());
+        setUser(tokenStorage.getUser());
+    }), []);
 
     useEffect(() => {
-        const verifyAuth = async () => {
-            const savedToken = localStorage.getItem("token");
-            if (savedToken) {
-                try {
-                    const currentUser = await authService.getCurrentUser();
-                    setUser(currentUser);
-                    localStorage.setItem("user", JSON.stringify(currentUser));
-                } catch {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
-                    setUser(null);
-                    setToken(null);
-                }
+        const restoreSession = async (): Promise<void> => {
+            if (!tokenStorage.getAccessToken()) {
+                setIsLoading(false);
+                return;
             }
-            setIsLoading(false);
+            try {
+                tokenStorage.setUser(await authService.getCurrentUser());
+            } catch {
+                tokenStorage.clear();
+            } finally {
+                setIsLoading(false);
+            }
         };
-
-        verifyAuth();
+        void restoreSession();
     }, []);
 
-    const login = async (data: LoginRequest) => {
-        const response = await authService.login(data);
-        setToken(response.token);
-        setUser(response.user);
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("user", JSON.stringify(response.user));
-    };
+    const login = useCallback(async (data: LoginRequest): Promise<void> => {
+        saveSession(await authService.login(data));
+    }, []);
 
-    const register = async (data: RegisterRequest) => {
+    const register = useCallback(async (data: RegisterRequest): Promise<void> => {
         await authService.register(data);
-        // Automatically login after successful registration
-        await login({
-            username: data.username,
-            password: data.password
-        });
-    };
+        await login({ email: data.email, password: data.password });
+    }, [login]);
 
-    const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-        setToken(null);
-        window.location.href = "/login";
-    };
+    const logout = useCallback(async (): Promise<void> => {
+        const refreshToken = tokenStorage.getRefreshToken();
+        try {
+            if (refreshToken) {
+                await authService.logout(refreshToken);
+            }
+        } catch {
+            // The local session must always be cleared, including offline logout.
+        } finally {
+            tokenStorage.clear();
+        }
+    }, []);
 
-    const updateUser = (updatedUser: User) => {
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-    };
+    const updateUser = useCallback((updatedUser: User): void => {
+        tokenStorage.setUser(updatedUser);
+    }, []);
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                isAuthenticated: !!token && !!user,
-                isLoading,
-                login,
-                register,
-                logout,
-                updateUser
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+    const value = useMemo<AuthContextValue>(() => ({
+        user,
+        accessToken,
+        isAuthenticated: Boolean(accessToken && user),
+        isLoading,
+        login,
+        register,
+        logout,
+        updateUser
+    }), [accessToken, isLoading, login, logout, register, user, updateUser]);
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = (): AuthContextType => {
+export function useAuth(): AuthContextValue {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
+        throw new Error("useAuth phải được sử dụng bên trong AuthProvider.");
     }
     return context;
-};
+}
 
 export default AuthContext;

@@ -1,53 +1,67 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Calendar, ChevronRight, FileQuestion, History } from "lucide-react";
-import courseService from "../services/courseService";
+import { Link, useNavigate } from "react-router-dom";
+import {
+    Award,
+    Calendar,
+    ChevronRight,
+    FileQuestion,
+    History,
+    RotateCcw
+} from "lucide-react";
+import learningService from "../services/learningService";
 import quizService from "../services/quizService";
-import { QuizAttemptHistory } from "../types";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import { Course, QuizAttemptSummary, QuizSummary } from "../types";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { EmptyState } from "../components/common/EmptyState";
+import { LoadingState } from "../components/common/LoadingState";
+import { ErrorBanner } from "../components/common/ErrorBanner";
 
-interface EnrichedAttempt extends QuizAttemptHistory {
-    quizTitle: string;
-    courseTitle: string;
+interface HistoryEntry {
+    attempt: QuizAttemptSummary;
+    quiz: QuizSummary;
 }
 
 export const QuizHistoryPage: React.FC = () => {
-    const [history, setHistory] = useState<EnrichedAttempt[]>([]);
+    const navigate = useNavigate();
+    const [entries, setEntries] = useState<HistoryEntry[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchHistory = async () => {
+        const fetchAllHistory = async () => {
             try {
                 setIsLoading(true);
-                const courses = await courseService.getCourses();
-                const allAttempts: EnrichedAttempt[] = [];
+                const coursesRes = await learningService.getCourses(0, 50);
+                const all: HistoryEntry[] = [];
 
-                for (const course of courses) {
+                for (const course of coursesRes.items) {
                     try {
-                        const quizzes = await quizService.getQuizzesByCourse(course.id);
-                        for (const quiz of quizzes) {
+                        const quizzesRes = await quizService.listQuizzes(course.id, 0, 50);
+                        for (const quiz of quizzesRes.items) {
                             try {
-                                const attempts = await quizService.getQuizAttempts(quiz.id);
-                                for (const att of attempts) {
-                                    allAttempts.push({
-                                        ...att,
-                                        quizTitle: quiz.title,
-                                        courseTitle: course.title
-                                    });
+                                const attemptsRes = await quizService.listAttempts(quiz.id, 0, 20);
+                                for (const att of attemptsRes.items) {
+                                    all.push({ attempt: att, quiz });
                                 }
                             } catch {
-                                // Ignore empty or failed attempts lookup for specific quiz
+                                // Ignore empty attempts
                             }
                         }
                     } catch {
-                        // Ignore failed quizzes lookup
+                        // Ignore failed quizzes
                     }
                 }
 
-                // Sort attempts by submittedAt descending
-                allAttempts.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
-                setHistory(allAttempts);
+                // Sort descending by submittedAt
+                all.sort(
+                    (a, b) =>
+                        new Date(b.attempt.submittedAt).getTime() -
+                        new Date(a.attempt.submittedAt).getTime()
+                );
+
+                setEntries(all);
                 setError(null);
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : "Không thể tải lịch sử làm bài.");
@@ -56,97 +70,107 @@ export const QuizHistoryPage: React.FC = () => {
             }
         };
 
-        fetchHistory();
+        void fetchAllHistory();
     }, []);
 
     if (isLoading) {
-        return <LoadingSpinner size="lg" text="Đang tải lịch sử luyện tập..." className="py-20" />;
+        return <LoadingState text="Đang tải lịch sử các lượt làm bài quiz..." />;
+    }
+
+    if (error) {
+        return (
+            <ErrorBanner
+                title="Lỗi tải lịch sử"
+                message={error}
+                onRetry={() => window.location.reload()}
+            />
+        );
     }
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <History className="w-5 h-5 text-indigo-600" />
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <History className="w-6 h-6 text-primary" />
                     <span>Lịch sử luyện tập Quiz</span>
-                </h2>
-                <p className="text-sm text-slate-500 mt-0.5">
-                    Theo dõi điểm số và xem lại chi tiết lời giải thích các bài trắc nghiệm bạn đã hoàn thành
+                </h1>
+                <p className="text-sm text-slate-500 mt-1">
+                    Xem lại kết quả các bài trắc nghiệm đã làm và giải thích câu hỏi chi tiết
                 </p>
             </div>
 
-            {error && (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
-                    {error}
-                </div>
-            )}
-
-            {history.length > 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
-                    {history.map((att) => {
-                        const isPassed = att.score >= 50;
+            {entries.length === 0 ? (
+                <EmptyState
+                    icon={<FileQuestion className="w-8 h-8 text-slate-400" />}
+                    title="Chưa có lượt làm bài nào"
+                    description="Vào một khóa học và bấm 'Làm bài' để bắt đầu luyện tập trắc nghiệm bám sát tài liệu."
+                    action={
+                        <Button onClick={() => navigate("/courses")} className="gap-2">
+                            <span>Xem danh sách khóa học</span>
+                        </Button>
+                    }
+                />
+            ) : (
+                <div className="space-y-3">
+                    {entries.map(({ attempt, quiz }) => {
+                        const isPassed = (attempt.score / (attempt.maxScore || 10)) >= 0.5;
 
                         return (
-                            <div
-                                key={att.attemptId}
-                                className="p-4 md:p-5 flex items-center justify-between gap-4 hover:bg-slate-50/80 transition"
+                            <Card
+                                key={attempt.attemptId}
+                                className="hover:border-primary/40 transition-all shadow-sm"
                             >
-                                <div className="flex items-center gap-4 min-w-0">
-                                    <div
-                                        className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
-                                            isPassed
-                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                                : "bg-rose-50 text-rose-700 border-rose-200"
-                                        }`}
-                                    >
-                                        {att.score}
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                                                {att.courseTitle}
-                                            </span>
-                                            <span className="text-xs text-slate-400 flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
-                                                {new Date(att.submittedAt).toLocaleDateString("vi-VN")}
-                                            </span>
+                                <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border ${
+                                                isPassed
+                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                    : "bg-rose-50 text-rose-700 border-rose-200"
+                                            }`}
+                                        >
+                                            {attempt.score}/{attempt.maxScore}
                                         </div>
 
-                                        <h4 className="text-sm font-bold text-slate-800 truncate mt-1">
-                                            {att.quizTitle}
-                                        </h4>
-
-                                        <p className="text-xs text-slate-500 mt-0.5">
-                                            Đúng {att.correctCount}/{att.totalQuestions} câu
-                                        </p>
+                                        <div className="space-y-1 min-w-0">
+                                            <h3 className="font-semibold text-slate-900 text-sm truncate">
+                                                {quiz.title}
+                                            </h3>
+                                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                <span>
+                                                    {attempt.correctCount}/{attempt.totalQuestions} câu đúng
+                                                </span>
+                                                <span>•</span>
+                                                <span>
+                                                    {new Date(attempt.submittedAt).toLocaleString("vi-VN")}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <Link
-                                    to={`/attempts/${att.attemptId}`}
-                                    className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 font-semibold text-xs transition shrink-0"
-                                >
-                                    <span>Xem chi tiết</span>
-                                    <ChevronRight className="w-4 h-4" />
-                                </Link>
-                            </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navigate(`/attempts/${attempt.attemptId}`)}
+                                            className="gap-1 text-xs"
+                                        >
+                                            <span>Xem kết quả</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => navigate(`/quizzes/${quiz.id}/take`)}
+                                            className="gap-1 text-xs"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5" />
+                                            <span>Làm lại</span>
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         );
                     })}
-                </div>
-            ) : (
-                <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-400">
-                    <FileQuestion className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-slate-700">Chưa có bài thi trắc nghiệm nào</p>
-                    <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto mb-6">
-                        Hãy vào một khóa học bất kỳ và nhấn &ldquo;Tạo đề thi AI&rdquo; để kiểm tra kiến thức của bạn.
-                    </p>
-                    <Link
-                        to="/courses"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm transition"
-                    >
-                        Khám phá khóa học
-                    </Link>
                 </div>
             )}
         </div>
