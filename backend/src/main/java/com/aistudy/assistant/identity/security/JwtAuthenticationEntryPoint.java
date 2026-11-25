@@ -1,4 +1,4 @@
-package com.aistudy.assistant.security;
+package com.aistudy.assistant.identity.security;
 
 import com.aistudy.assistant.common.dto.ApiResponse;
 import com.aistudy.assistant.common.exception.ErrorCode;
@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Handles unauthenticated requests (HTTP 401) using the V2 {@link ApiResponse} format with {@code traceId}.
+ */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

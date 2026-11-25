@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.analytics.AnalyticsOverviewResponse;
 import com.aistudy.assistant.dto.analytics.CourseAnalyticsResponse;
 import com.aistudy.assistant.dto.analytics.ReviewRecommendationResponse;

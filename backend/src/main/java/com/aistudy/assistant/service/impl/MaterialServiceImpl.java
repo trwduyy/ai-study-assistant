@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.material.MaterialDetailResponse;
 import com.aistudy.assistant.dto.material.MaterialResponse;
 import com.aistudy.assistant.dto.material.MaterialUploadResponse;
@@ -8,14 +8,14 @@ import com.aistudy.assistant.entity.Course;
 import com.aistudy.assistant.entity.ExtractionStatus;
 import com.aistudy.assistant.entity.Material;
 import com.aistudy.assistant.entity.Topic;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.BadRequestException;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.exception.UnprocessableEntityException;
 import com.aistudy.assistant.repository.CourseRepository;
 import com.aistudy.assistant.repository.MaterialRepository;
 import com.aistudy.assistant.repository.TopicRepository;
-import com.aistudy.assistant.repository.UserRepository;
+import com.aistudy.assistant.identity.repository.UserRepository;
 import com.aistudy.assistant.service.FileStorageService;
 import com.aistudy.assistant.service.MaterialService;
 import com.aistudy.assistant.service.TextExtractionService;

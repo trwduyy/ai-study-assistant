@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.chat.ChatAnswerResponse;
 import com.aistudy.assistant.dto.chat.ChatMessageResponse;
 import com.aistudy.assistant.dto.chat.ChatSessionResponse;
@@ -12,13 +12,13 @@ import com.aistudy.assistant.entity.ChatSession;
 import com.aistudy.assistant.entity.Course;
 import com.aistudy.assistant.entity.ExtractionStatus;
 import com.aistudy.assistant.entity.Material;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.ChatMessageRepository;
 import com.aistudy.assistant.repository.ChatSessionRepository;
 import com.aistudy.assistant.repository.CourseRepository;
 import com.aistudy.assistant.repository.MaterialRepository;
-import com.aistudy.assistant.repository.UserRepository;
+import com.aistudy.assistant.identity.repository.UserRepository;
 import com.aistudy.assistant.service.ChatService;
 import com.aistudy.assistant.service.GeminiClientService;
 import lombok.RequiredArgsConstructor;

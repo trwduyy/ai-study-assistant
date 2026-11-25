@@ -1,6 +1,7 @@
 package com.aistudy.assistant.entity;
 
 import com.aistudy.assistant.common.entity.BaseCreatedEntity;
+import com.aistudy.assistant.identity.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

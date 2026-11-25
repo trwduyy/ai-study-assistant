@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.summary.GenerateSummaryRequest;
 import com.aistudy.assistant.dto.summary.SummaryResponse;
 import com.aistudy.assistant.entity.ExtractionStatus;

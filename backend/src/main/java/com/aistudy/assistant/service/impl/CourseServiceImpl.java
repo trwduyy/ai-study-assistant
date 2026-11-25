@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.course.CourseDetailResponse;
 import com.aistudy.assistant.dto.course.CourseResponse;
 import com.aistudy.assistant.dto.course.CreateCourseRequest;
@@ -10,11 +10,11 @@ import com.aistudy.assistant.dto.course.UpdateCourseRequest;
 import com.aistudy.assistant.dto.course.UpdateTopicRequest;
 import com.aistudy.assistant.entity.Course;
 import com.aistudy.assistant.entity.Topic;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.CourseRepository;
 import com.aistudy.assistant.repository.TopicRepository;
-import com.aistudy.assistant.repository.UserRepository;
+import com.aistudy.assistant.identity.repository.UserRepository;
 import com.aistudy.assistant.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

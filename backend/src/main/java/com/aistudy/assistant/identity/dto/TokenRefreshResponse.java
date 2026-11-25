@@ -1,6 +1,5 @@
-package com.aistudy.assistant.dto.auth;
+package com.aistudy.assistant.identity.dto;
 
-import com.aistudy.assistant.dto.user.UserProfileResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,14 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
+public class TokenRefreshResponse {
 
-    private String token;
+    private String accessToken;
+    private String refreshToken;
 
     @Builder.Default
     private String tokenType = "Bearer";
 
     private long expiresIn;
-
-    private UserProfileResponse user;
 }

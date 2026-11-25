@@ -1,6 +1,6 @@
 package com.aistudy.assistant.service.impl;
 
-import com.aistudy.assistant.common.SecurityUtils;
+import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.dto.quiz.AttemptDetailResponse;
 import com.aistudy.assistant.dto.quiz.GenerateQuizRequest;
 import com.aistudy.assistant.dto.quiz.QuestionAnswerSubmit;
@@ -18,7 +18,7 @@ import com.aistudy.assistant.entity.OptionLetter;
 import com.aistudy.assistant.entity.Quiz;
 import com.aistudy.assistant.entity.QuizAttempt;
 import com.aistudy.assistant.entity.QuizQuestion;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.BadRequestException;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.AttemptAnswerRepository;
@@ -27,7 +27,7 @@ import com.aistudy.assistant.repository.MaterialRepository;
 import com.aistudy.assistant.repository.QuizAttemptRepository;
 import com.aistudy.assistant.repository.QuizQuestionRepository;
 import com.aistudy.assistant.repository.QuizRepository;
-import com.aistudy.assistant.repository.UserRepository;
+import com.aistudy.assistant.identity.repository.UserRepository;
 import com.aistudy.assistant.service.GeminiClientService;
 import com.aistudy.assistant.service.QuizService;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -8,13 +8,13 @@ import com.aistudy.assistant.dto.course.TopicResponse;
 import com.aistudy.assistant.dto.course.UpdateCourseRequest;
 import com.aistudy.assistant.entity.Course;
 import com.aistudy.assistant.entity.Topic;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.CourseRepository;
 import com.aistudy.assistant.repository.MaterialRepository;
 import com.aistudy.assistant.repository.TopicRepository;
-import com.aistudy.assistant.repository.UserRepository;
-import com.aistudy.assistant.security.UserPrincipal;
+import com.aistudy.assistant.identity.repository.UserRepository;
+import com.aistudy.assistant.identity.security.UserPrincipal;
 import com.aistudy.assistant.service.impl.CourseServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +66,6 @@ class CourseServiceTest {
     void setUp() {
         mockUser = User.builder()
                 .id(1L)
-                .username("student01")
                 .email("student01@example.com")
                 .fullName("Nguyen Van A")
                 .passwordHash("hashedPass")

@@ -16,15 +16,15 @@ import com.aistudy.assistant.entity.OptionLetter;
 import com.aistudy.assistant.entity.Quiz;
 import com.aistudy.assistant.entity.QuizAttempt;
 import com.aistudy.assistant.entity.QuizQuestion;
-import com.aistudy.assistant.entity.User;
+import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.repository.AttemptAnswerRepository;
 import com.aistudy.assistant.repository.CourseRepository;
 import com.aistudy.assistant.repository.MaterialRepository;
 import com.aistudy.assistant.repository.QuizAttemptRepository;
 import com.aistudy.assistant.repository.QuizQuestionRepository;
 import com.aistudy.assistant.repository.QuizRepository;
-import com.aistudy.assistant.repository.UserRepository;
-import com.aistudy.assistant.security.UserPrincipal;
+import com.aistudy.assistant.identity.repository.UserRepository;
+import com.aistudy.assistant.identity.security.UserPrincipal;
 import com.aistudy.assistant.service.impl.QuizServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -95,7 +95,6 @@ class QuizServiceTest {
     void setUp() {
         mockUser = User.builder()
                 .id(1L)
-                .username("student01")
                 .email("student01@example.com")
                 .fullName("Nguyen Van A")
                 .passwordHash("hash")
