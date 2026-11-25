@@ -7,19 +7,24 @@ export const MainLayout: React.FC = () => {
     const location = useLocation();
 
     const getPageTitle = (path: string): string => {
-        if (path === "/" || path.startsWith("/dashboard")) return "Tổng quan";
+        if (path === "/" || path === "/dashboard" || path === "/teacher/dashboard") return "Tổng quan";
         if (path.startsWith("/courses/")) return "Chi tiết khóa học";
         if (path === "/courses" || path === "/ai-materials") return "Khóa học & Tài liệu học tập";
         if (path.startsWith("/materials/")) return "Không gian học tập AI";
         if (path.startsWith("/flashcards/") && path.includes("/review")) return "Ôn tập Flashcards SM-2";
         if (path === "/flashcards") return "Bộ thẻ Flashcards (SM-2)";
+        if (path.startsWith("/tests/") && path.includes("/take")) return "Làm bài kiểm tra định thời";
+        if (path.startsWith("/tests/") && path.includes("/results")) return "Kết quả bài kiểm tra cả lớp";
+        if (path === "/tests") return "Danh sách bài kiểm tra";
         if (path.includes("/take")) return "Làm bài thi trắc nghiệm";
         if (path.startsWith("/attempts/")) return "Kết quả & Giải thích bài thi";
         if (path === "/history") return "Lịch sử luyện tập";
+        if (path.startsWith("/assignments/") && path.length > 13) return "Chi tiết bài tập & Nộp bài";
+        if (path === "/assignments") return "Danh sách bài tập";
+        if (path.startsWith("/classes/") && path.length > 9) return "Chi tiết lớp học phần";
+        if (path === "/classes" || path === "/my-classes") return "Lớp học phần";
         if (path === "/profile") return "Hồ sơ cá nhân";
-        if (path.includes("class")) return "Lớp học";
         if (path.includes("schedule")) return "Lịch học";
-        if (path.includes("assignment")) return "Bài tập";
         if (path.includes("message")) return "Tin nhắn";
         if (path.includes("report") || path.includes("statistic")) return "Báo cáo và thống kê";
         return "AI Study Assistant";

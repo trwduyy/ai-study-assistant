@@ -15,7 +15,9 @@ import {
     Sparkles,
     Target,
     TrendingUp,
-    Zap
+    Zap,
+    ClipboardList,
+    ArrowRight
 } from "lucide-react";
 import {
     Area,
@@ -34,6 +36,8 @@ import {
     ScoreTrendItem,
     StudentDashboardData
 } from "../types";
+import { useAuth } from "../contexts/AuthContext";
+import TeacherDashboardPage from "./TeacherDashboardPage";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -42,6 +46,12 @@ import { ErrorBanner } from "../components/common/ErrorBanner";
 
 export const DashboardPage: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    // If teacher or admin, render Teacher Dashboard directly
+    if (user?.role === "TEACHER" || user?.role === "ADMIN") {
+        return <TeacherDashboardPage />;
+    }
 
     const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
     const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
@@ -204,6 +214,86 @@ export const DashboardPage: React.FC = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Upcoming / Due Assignments */}
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5 text-teal-700" />
+                            <span>Bài tập sắp đến hạn (chưa nộp)</span>
+                        </CardTitle>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                            Nộp bài trước hạn để không bị trừ điểm hoặc khóa nộp bài
+                        </p>
+                    </div>
+                    {dashboard?.dueAssignments && dashboard.dueAssignments.length > 0 && (
+                        <Badge variant="secondary" className="text-xs font-semibold">
+                            {dashboard.dueAssignments.length} bài cần làm
+                        </Badge>
+                    )}
+                </CardHeader>
+                <CardContent className="p-5">
+                    {!dashboard?.dueAssignments || dashboard.dueAssignments.length === 0 ? (
+                        <div className="py-6 flex flex-col items-center justify-center text-center">
+                            <CheckCircle2 className="w-8 h-8 text-emerald-500 mb-2" />
+                            <p className="text-sm font-medium text-slate-800">Không có bài tập nào sắp đến hạn</p>
+                            <p className="text-xs text-slate-500 mt-0.5">Bạn đã hoàn thành tất cả bài tập hoặc chưa có bài tập mới.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            {dashboard.dueAssignments.map((assignment) => {
+                                const assignId = assignment.assignmentId || assignment.id;
+                                const deadlineStr = assignment.dueAt || assignment.deadline;
+                                const isOverdue = deadlineStr ? new Date(deadlineStr) < new Date() : false;
+
+                                return (
+                                    <div
+                                        key={assignId}
+                                        className="p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col justify-between space-y-3"
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <Badge variant="outline" className="text-[11px] font-medium text-slate-600 bg-slate-50">
+                                                    {assignment.className || assignment.courseName || "Lớp học phần"}
+                                                </Badge>
+                                                {deadlineStr && (
+                                                    <Badge variant={isOverdue ? "danger" : "warning"} className="text-[10px]">
+                                                        {isOverdue ? "Đã quá hạn" : `Hạn: ${new Date(deadlineStr).toLocaleString("vi-VN", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit"
+                                                        })}`}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-900 line-clamp-1">
+                                                {assignment.title}
+                                            </h4>
+                                            {typeof assignment.maxScore === "number" && (
+                                                <p className="text-xs text-slate-500">
+                                                    Thang điểm tối đa: <strong className="text-slate-700">{assignment.maxScore}</strong>
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <Button
+                                            size="sm"
+                                            variant="default"
+                                            className="w-full text-xs gap-1.5 h-8 bg-teal-700 hover:bg-teal-800"
+                                            onClick={() => navigate(`/assignments/${assignId}`)}
+                                        >
+                                            <span>Nộp bài ngay</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </Button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Score Trend Chart */}
             <Card className="border-slate-200 shadow-sm">

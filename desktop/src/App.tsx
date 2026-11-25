@@ -17,6 +17,14 @@ import QuizHistoryPage from "./pages/QuizHistoryPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
 import FlashcardReviewPage from "./pages/FlashcardReviewPage";
 import ProfilePage from "./pages/ProfilePage";
+import ClassesPage from "./pages/ClassesPage";
+import ClassDetailPage from "./pages/ClassDetailPage";
+import AssignmentsListPage from "./pages/AssignmentsListPage";
+import AssignmentDetailPage from "./pages/AssignmentDetailPage";
+import TestsListPage from "./pages/TestsListPage";
+import ClassTestTakePage from "./pages/ClassTestTakePage";
+import ClassTestResultsPage from "./pages/ClassTestResultsPage";
+import TeacherDashboardPage from "./pages/TeacherDashboardPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { Toaster } from "sonner";
 
@@ -34,6 +42,7 @@ const App: React.FC = () => {
                         <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                             <Route index element={<Navigate to="/dashboard" replace />} />
                             <Route path="dashboard" element={<DashboardPage />} />
+                            <Route path="teacher/dashboard" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><TeacherDashboardPage /></ProtectedRoute>} />
                             <Route path="courses" element={<CoursesPage />} />
                             <Route path="courses/:courseId" element={<CourseDetailPage />} />
                             <Route path="materials/:materialId" element={<MaterialStudyPage />} />
@@ -45,14 +54,20 @@ const App: React.FC = () => {
                             <Route path="ai-materials" element={<CoursesPage />} />
                             <Route path="profile" element={<ProfilePage />} />
 
+                            {/* Classroom & Assignment Modules (FE-2A) */}
+                            <Route path="classes" element={<ClassesPage />} />
+                            <Route path="classes/:classId" element={<ClassDetailPage />} />
+                            <Route path="my-classes" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><ClassesPage /></ProtectedRoute>} />
+                            <Route path="assignments" element={<AssignmentsListPage />} />
+                            <Route path="assignments/:assignmentId" element={<AssignmentDetailPage />} />
+                            <Route path="tests" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><TestsListPage /></ProtectedRoute>} />
+                            <Route path="tests/:testId/take" element={<ClassTestTakePage />} />
+                            <Route path="tests/:testId/results" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><ClassTestResultsPage /></ProtectedRoute>} />
+
                             {/* Remaining Phased Placeholders */}
-                            <Route path="classes" element={<PlaceholderPage title="Lớp học" description="Quản lý lớp và gửi yêu cầu tham gia bằng mã lớp." />} />
                             <Route path="schedule" element={<PlaceholderPage title="Lịch học" description="Theo dõi lịch học, sự kiện và nhắc việc cá nhân." />} />
-                            <Route path="assignments" element={<PlaceholderPage title="Bài tập" description="Xem hạn nộp, nộp bài và theo dõi kết quả chấm." />} />
                             <Route path="messages" element={<PlaceholderPage title="Tin nhắn" description="Trao đổi với lớp học và giảng viên theo thời gian thực." />} />
                             <Route path="study-plan" element={<PlaceholderPage title="Kế hoạch học" description="Tạo mục tiêu và kế hoạch học tập cá nhân." />} />
-                            <Route path="my-classes" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Lớp của tôi" description="Tạo và quản lý lớp học do bạn phụ trách." /></ProtectedRoute>} />
-                            <Route path="tests" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Bài kiểm tra" description="Tạo, lên lịch và theo dõi bài kiểm tra của lớp." /></ProtectedRoute>} />
                             <Route path="meetings" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Cuộc họp" description="Quản lý cuộc họp, lịch học trực tuyến và liên kết tham gia." /></ProtectedRoute>} />
                             <Route path="class-statistics" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Thống kê lớp" description="Theo dõi tiến độ, điểm số và mức độ tham gia của lớp." /></ProtectedRoute>} />
                             <Route path="users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Người dùng" description="Quản lý tài khoản, trạng thái và vai trò người dùng." /></ProtectedRoute>} />

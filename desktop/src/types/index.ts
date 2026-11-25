@@ -1,6 +1,7 @@
 export * from "./api";
 export * from "./auth";
 export * from "./realtime";
+export * from "./classroom";
 
 // =============================================================================
 // Learning & Curriculum V2 Types (Course, Chapter, Topic, Material)
@@ -569,10 +570,16 @@ export interface StudentDashboardData {
         endTime: string;
     }>;
     dueAssignments: Array<{
-        id: number;
+        assignmentId?: number;
+        id?: number;
+        classId?: number;
+        className?: string;
         title: string;
-        deadline: string;
+        dueAt?: string;
+        deadline?: string;
         courseName?: string;
+        allowLate?: boolean;
+        maxScore?: number;
     }>;
     unreadNotificationCount: number;
     todayTasks: Array<{
