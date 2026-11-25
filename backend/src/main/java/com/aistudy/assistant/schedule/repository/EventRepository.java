@@ -24,6 +24,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByOwnerIdAndSourceAndExternalId(Long ownerId, EventSource source, String externalId);
 
+    List<Event> findByOwnerIdAndSourceAndExternalIdIn(
+            Long ownerId,
+            EventSource source,
+            Collection<String> externalIds
+    );
+
+    void deleteByOwnerIdAndSource(Long ownerId, EventSource source);
+
     @EntityGraph(attributePaths = {"owner", "classroom"})
     @Query("""
             SELECT e

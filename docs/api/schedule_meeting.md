@@ -282,10 +282,10 @@ Chuyển trạng thái sang `CANCELLED`. Nếu `classId != null` trả `403 FORB
 ## 4. Import lịch `.ics` / CSV (Đợt 4B — Mục 5.9, FR-15)
 
 ### 4.1 `GET /api/v1/calendar/import-template` — Tải file CSV mẫu (`S / All`)
-Trả về tệp `text/csv` UTF-8 kèm header mẫu: `title,type,start_at,end_at,timezone,description,meeting_url`.
+Trả về tệp `text/csv; charset=UTF-8` với header `Content-Disposition: attachment; filename="calendar-template.csv"` và các cột: `title,description,start_at,end_at,timezone,location`.
 
 ### 4.2 `POST /api/v1/calendar/imports/preview` — Tải `.ics`/CSV, xem trước & phát hiện trùng giờ (`S / All`)
-Request `multipart/form-data` gồm `file` (`.ics` hoặc `.csv`) và tùy chọn `timezone` mặc định (mặc định `Asia/Ho_Chi_Minh`). Backend phân tích từng dòng/VEVENT, quy đổi UTC (giữ `timezone` gốc), kiểm tra trùng giờ với lịch hiện có và lưu bản nháp vào `calendar_imports` (`status = PREVIEW`).
+Request `multipart/form-data` gồm `file` (`.ics` hoặc `.csv`, tối đa 5MB) và tùy chọn `defaultTimezone` (mặc định `Asia/Ho_Chi_Minh`). Backend phân tích từng dòng/VEVENT, quy đổi UTC (giữ `timezone` gốc), kiểm tra trùng giờ với lịch hiện có (`a.start < b.end && b.start < a.end`) và lưu bản nháp vào `calendar_imports` (`status = PREVIEW`). Nếu lỗi định dạng sẽ trả `400 VALIDATION_ERROR` kèm số dòng.
 
 - **Response `201 Created`:**
 ```json
@@ -297,25 +297,29 @@ Request `multipart/form-data` gồm `file` (`.ics` hoặc `.csv`) và tùy chọ
         "fileName": "thoi-khoa-bieu-hk1.ics",
         "timezone": "Asia/Ho_Chi_Minh",
         "status": "PREVIEW",
-        "totalParsed": 12,
+        "totalParsed": 1,
         "conflictCount": 1,
         "items": [
             {
-                "itemKey": "0",
+                "itemIndex": 0,
                 "externalId": "uid-kma-101@actvn.edu.vn",
-                "type": "CLASS",
                 "title": "An toàn mạng máy tính",
-                "description": "Phòng 402-TA2",
+                "description": "Học lý thuyết",
+                "location": "Phòng 402-TA2",
                 "startAt": "2026-11-27T00:00:00Z",
                 "endAt": "2026-11-27T02:30:00Z",
                 "timezone": "Asia/Ho_Chi_Minh",
                 "hasConflict": true,
-                "conflicts": [
+                "conflictingEvents": [
                     {
                         "eventId": 1001,
                         "title": "Họp giải đáp đồ án Lập trình Mạng",
+                        "type": "MEETING",
+                        "classId": 10,
+                        "className": "Lập trình Mạng - K19A",
                         "startAt": "2026-11-27T01:00:00Z",
-                        "endAt": "2026-11-27T02:00:00Z"
+                        "endAt": "2026-11-27T02:00:00Z",
+                        "source": "MANUAL"
                     }
                 ]
             }
@@ -329,8 +333,7 @@ Request `multipart/form-data` gồm `file` (`.ics` hoặc `.csv`) và tùy chọ
 - **Request:**
 ```json
 {
-    "selectedItemKeys": ["0", "1", "2"],
-    "skipConflicts": false
+    "acceptedItemIndices": [0, 1, 3]
 }
 ```
 - **Response `200 OK`:**
@@ -341,7 +344,8 @@ Request `multipart/form-data` gồm `file` (`.ics` hoặc `.csv`) và tùy chọ
         "importId": 45,
         "status": "CONFIRMED",
         "importedCount": 3,
-        "skippedCount": 0
+        "skippedCount": 0,
+        "createdEventIds": [2010, 2011, 2012]
     },
     "traceId": "s4b1b2c3d4f50002"
 }
@@ -404,6 +408,7 @@ Chạy gọi Google Calendar API **ngoài transaction**, sau đó upsert các s�
         "syncedCount": 8,
         "createdCount": 5,
         "updatedCount": 3,
+        "cancelledCount": 0,
         "lastSyncedAt": "2026-11-25T11:32:00Z"
     },
     "traceId": "g4b1b2c3d4f50003"
