@@ -1,76 +1,105 @@
-# AI Study Assistant – Master Context & Coding Rules
+# AI Study Assistant (V2 — Modular Monolith)
 
-## 1. Project Overview
-- **Project Name:** AI Study Assistant (Desktop Application)
-- **Goal:** A cross-platform desktop app supporting the study cycle: *Organize → Understand → Practice → Evaluate → Improve*.
-- **Scope:** Strictly focus on **Phase 1 (MVP)** unless explicitly instructed otherwise:
-    - FR-01: User Auth (Register, Login, Profile, Change Password)
-    - FR-02: Course & Topic CRUD
-    - FR-03: Material Management (Upload PDF/DOCX/TXT, text extraction)
-    - FR-04: AI Summarization (structured summary, selectable length)
-    - FR-05: AI Study Chat (document-grounded Q&A + chat history)
-    - FR-06 & FR-07: AI Quiz Generator, Quiz Taking, Auto-scoring & Explanations
-    - FR-10: Basic Learning Analytics Dashboard
-- **Out of Scope for MVP (DO NOT implement unless asked):** RAG/Vector DB, Flashcards, Study Planner, Custom ML models, OCR, Admin/Teacher roles.
+Ứng dụng Desktop hỗ trợ học tập và giảng dạy (**Organize → Understand → Practice → Evaluate → Improve**) tích hợp AI bám sát tài liệu, lớp học trực tuyến, bài tập, bài kiểm tra, thời khóa biểu, chat thời gian thực và thông báo đa kênh.
 
 ---
 
-## 2. System Architecture & Tech Stack
-- **Deployment Model:** Desktop Client (Electron) communicates via REST API with a standalone Backend Server (Spring Boot + MySQL). **NEVER** bundle Java/Spring Boot or MySQL inside the Electron installer.
-- **Monorepo Structure:**
-    - `/backend` — Java 17+, Spring Boot 3.x, Spring Data JPA, Spring Security (JWT), MySQL, Apache PDFBox, Apache POI, Lombok, Springdoc OpenAPI.
-    - `/desktop` — Electron, Vite, React, TypeScript, Tailwind CSS, Axios.
-    - `/docker-compose.yml` — Local MySQL container setup.
+## 1. Tổng quan kiến trúc
+
+- **Mô hình:** **Modular Monolith** — Desktop Client gọi REST API & WebSocket STOMP tới Backend độc lập (tuyệt đối không nhúng JDK/Spring Boot/MySQL vào bộ cài Electron).
+- **Frontend (`/desktop`):** Electron + React + TypeScript + Tailwind CSS + `shadcn/ui` (Radix UI).
+- **Backend (`/backend`):** Java 17 + Spring Boot 3.2.5 + Spring Security (JWT + Refresh Token xoay vòng) + Spring Data JPA + WebSocket STOMP + Apache PDFBox / Apache POI + MySQL 8.0 + Flyway.
+- **Database (`/backend/src/main/resources/db/migration`):** MySQL 8.0 (`utf8mb4_unicode_ci`), quản lý phiên bản schema hoàn toàn bằng **Flyway**.
+
+### Cấu trúc 9 module nghiệp vụ trong `/backend` (`com.aistudy.assistant`)
+
+| Module | Trách nhiệm |
+| :--- | :--- |
+| `common` | Base entities (`id`, `createdAt`, `updatedAt`, `deletedAt`, `version`), `ApiResponse<T>` V2, `ErrorCode`, `AppException`, `GlobalExceptionHandler`, `TraceIdFilter`, `AsyncConfig`, tiện ích bảo mật |
+| `identity` | Đăng ký, đăng nhập, xoay vòng refresh token, khóa tạm tài khoản, hồ sơ người dùng, quản trị tài khoản & phân quyền |
+| `learning` | Khóa học, chương, chủ đề, tài liệu học tập, trích xuất & chia chunk, quiz/lượt làm bài, flashcard, thống kê & gợi ý ôn tập |
+| `ai` | Hàng đợi tác vụ AI (`ai_jobs`), worker bất đồng bộ, tóm tắt, giải thích, hỏi đáp bám sát tài liệu có trích nguồn, sinh quiz/flashcard/lộ trình, báo cáo câu trả lời sai, tích hợp AI Provider |
+| `classroom` | Lớp học, mã lớp, yêu cầu tham gia (`PENDING/APPROVED/REJECTED`), thành viên, đồng giảng dạy, bảng tin, tài liệu lớp |
+| `assignment` | Bài tập, nộp bài (giờ máy chủ, chống nộp lặp), chấm điểm/trả bài, bài kiểm tra định thời |
+| `schedule` | Thời khóa biểu, import `.ics`/CSV xem trước & phát hiện trùng giờ, sự kiện cá nhân, đồng bộ Google Calendar (chỉ đọc), mục tiêu & task |
+| `meeting` | Sự kiện học tập/kiểm tra/họp lớp, lưu đường dẫn Meet |
+| `chat` | Chat 1-1 và phòng chat lớp thời gian thực (WebSocket STOMP + REST fallback), phân trang cursor, trạng thái đã đọc |
+| `notification` | Transactional Outbox (`IN_APP`, `EMAIL`), worker gửi & retry có chống trùng, cấu hình thông báo, nhắc hạn |
 
 ---
 
-## 3. Core Technical & Security Rules
+## 2. Bộ luật cứng Backend (`/backend`)
 
-### Backend (Java / Spring Boot)
-1. **Layered Architecture:** Strictly separate `controller` → `service` → `repository` → `entity` / `dto`. Never expose JPA `@Entity` classes directly in Controller responses; always use DTOs.
-2. **Standard API Response:** Wrap all REST responses in a uniform generic class `ApiResponse<T>`:
-   ```json
-   {
-       "success": true,
-       "message": "Operation successful",
-       "data": {},
-       "timestamp": "2026-11-23T10:00:00Z"
-   }
-   ```
-3. **Exception Handling:** Use a centralized `@RestControllerAdvice` (`GlobalExceptionHandler`) to handle validation errors, auth errors, not found, and external AI API failures cleanly.
-4. **Security & Ownership:**
-    - Hash passwords with `BCryptPasswordEncoder`.
-    - Use stateless JWT authentication.
-    - **Resource Ownership:** Every Course, Material, Chat Session, and Quiz query/mutation MUST verify that the resource belongs to the currently authenticated user.
-    - **API Key Isolation:** `GEMINI_API_KEY` MUST stay in Backend environment variables only. Never expose it to the client.
-5. **File Processing (PDFBox / POI):**
-    - Validate file extension, MIME type, and max size (20MB) before saving.
-    - Extract and clean text, then persist it in the `materials.extracted_text` (`LONGTEXT`) column.
-    - **Empty/Scan Check:** If extracted text is empty or shorter than 50 characters (likely a scanned PDF), return a clear error/warning status instead of sending empty text to Gemini.
-6. **Gemini AI Integration:**
-    - Centralize all Gemini calls in a single `GeminiClientService` with proper timeout (60s), error logging, and controlled retry on transient errors (e.g., HTTP 429/503).
-    - **Quiz Generation:** ALWAYS use Gemini **Structured Outputs (JSON Schema)** to guarantee valid JSON for questions, options, correct answer, and explanation. Validate the parsed output before saving to MySQL.
-
-### Frontend & Desktop (Electron / React / TypeScript)
-1. **Strict TypeScript:** Avoid `any`. Define clear interfaces in `/src/types/` matching the Backend DTOs and `ApiResponse<T>`.
-2. **API Layer:** Centralize HTTP calls in `/src/services/` using a configured Axios instance with a request interceptor (attach JWT) and response interceptor (handle 401/network errors).
-3. **Async UX for AI Tasks:** Every AI action (Summarize, Chat, Generate Quiz) MUST display a loading state, disable duplicate submissions while pending, and show user-friendly error messages on timeout/failure.
-4. **Electron Security:** Keep `contextIsolation: true` and `nodeIntegration: false`. Use `preload.ts` for any necessary IPC bridges.
+1. **Quản lý Database bằng Flyway & chuẩn UTC:**
+    - Bắt buộc `spring.jpa.hibernate.ddl-auto: validate` và `spring.jpa.open-in-view: false`. Mọi thay đổi schema chỉ thực hiện qua file migration Flyway (`V{n}__{mo_ta}.sql`).
+    - Mọi bảng đều có `created_at`, `updated_at` kiểu `TIMESTAMP(3)` lưu chuẩn **UTC** (`TimeZone.setDefault("UTC")`, `hibernate.jdbc.time_zone: UTC`).
+    - Các bảng có thể cập nhật đồng thời phải có cột `version` (`@Version` optimistic locking).
+    - `courses`, `materials`, `quizzes` sử dụng xóa mềm (`deleted_at`) để bảo toàn lịch sử điểm và truy vết.
+2. **Phân lớp nghiêm ngặt:**
+    - Tách rõ `Controller → Service → Repository → Entity / DTO / Mapper` (và `integration` cho dịch vụ ngoài).
+    - **Tuyệt đối không trả JPA `@Entity` ra REST API**, luôn ánh xạ sang DTO. Controller không chứa logic nghiệp vụ.
+3. **Quản trị Transaction:**
+    - **Tuyệt đối không giữ `@Transactional` mở** khi gọi AI Provider, Google Calendar API, gửi Email SMTP hoặc đọc/ghi file vật lý. Tác vụ nặng phải chạy ngoài transaction (hoặc qua `ai_jobs` / `notification_outbox`).
+4. **Chống N+1 Query:**
+    - Dùng DTO Projection cho truy vấn danh sách/thống kê.
+    - Dùng `@EntityGraph` hoặc `JOIN FETCH` cho quan hệ to-one khi cần; giữ `hibernate.default_batch_fetch_size: 30`.
+    - **Không** dùng `JOIN FETCH` trên collection đi kèm phân trang (`Pageable`). Phân trang luôn thực hiện ở tầng database.
+5. **Chống Race Condition:**
+    - Ràng buộc duy nhất (`UNIQUE`) ở mức database là chốt chặn cuối (`email`, `idempotency_key`, `class_member`, `submission`, `notification_outbox`...).
+    - Dùng `@Version` (trả `409 Conflict` khi xung đột), `Idempotency-Key` cho thao tác gửi lại (nộp quiz, nộp bài, tạo sự kiện, gửi tin nhắn).
+    - Giờ máy chủ quyết định hạn nộp, trạng thái muộn (`is_late`) và thời gian làm bài kiểm tra.
+6. **Chuẩn phản hồi `ApiResponse<T>` V2 & Bảo mật lỗi:**
+    - Mọi phản hồi REST dùng `ApiResponse<T>` gồm 5 trường: `success`, `data`, `meta`, `error`, `traceId`.
+    - Mọi lỗi qua `GlobalExceptionHandler` chuẩn hóa theo `ErrorCode`, gắn `traceId` từ `TraceIdFilter` (`X-Trace-Id`), **tuyệt đối không lộ stack trace, tên bảng hay thông báo SQL nội bộ**.
+    - API Key AI, Google OAuth Secret, SMTP credentials chỉ tồn tại ở Backend.
 
 ---
 
-## 4. Code Style & Formatting
-- **Indentation:** Strictly **4 spaces** across all files (Java, TypeScript, JSON, YAML, CSS).
-- **Naming Conventions:**
-    - Java: `PascalCase` for classes, `camelCase` for methods/variables, `snake_case` for MySQL tables/columns.
-    - TypeScript/React: `PascalCase` for components/types, `camelCase` for functions/variables, `kebab-case` or `PascalCase` consistently per folder.
-- **Language:** Write all code, database names, and technical comments in **English**. UI labels/messages can be in **Vietnamese** (consistent across the app).
+## 3. Bộ luật cứng Frontend (`/desktop`)
+
+1. **TypeScript nghiêm ngặt:** Cấm dùng `any`. Định nghĩa đầy đủ type/interface khớp với `ApiResponse<T>` V2 và DTO của Backend.
+2. **UI & Ngôn ngữ:** Ưu tiên hệ thành phần **`shadcn/ui` + Radix UI + Tailwind CSS**. Sử dụng **tiếng Việt phổ thông** nhất quán, rõ trạng thái tải / rỗng / lỗi / thành công, hỗ trợ bàn phím.
+3. **Xác thực & Làm mới Token:** HTTP client tập trung tự động gắn `Authorization: Bearer <accessToken>`, tự động gọi `POST /api/v1/auth/refresh` khi gặp `401` (có hàng đợi chống gọi refresh trùng lặp) và chuyển về đăng nhập nếu refresh thất bại.
+4. **Tác vụ AI & Electron Security:** Các thao tác AI bất đồng bộ hiển thị trạng thái chờ, chống bấm gửi trùng lặp, xử lý timeout/lỗi rõ ràng. Luôn giữ `contextIsolation: true` và `nodeIntegration: false`.
 
 ---
 
-## 5. AI Assistant Behavior Rules
-1. **Language:** Communicate and explain solutions to the developer in **Vietnamese**.
-2. **No Placeholders:** Do not leave `// TODO: implement this` or skip critical logic when asked to generate a module. Provide complete, runnable code.
-3. **File Paths First:** Always state the exact relative file path (e.g., `backend/src/main/java/com/aistudy/...`) before each code block.
-4. **Incremental & Verifiable:** When implementing a feature, list the files to create/modify first, then output clean code. If a change affects the DB schema or API contract, explicitly highlight it.
-5. **Stay Focused:** Do not refactor unrelated files or introduce unapproved libraries without asking first.
+## 4. Quy chuẩn code
+
+- **Thụt lề:** Bắt buộc **4 spaces** trên toàn bộ mã nguồn (Java, TypeScript, JSON, YAML, SQL, CSS).
+- **Không placeholder:** Không để `TODO` bỏ ngỏ hay code mẫu rỗng khi triển khai module.
+- **Đặt tên:** Java (`PascalCase` / `camelCase`), Database (`snake_case`), REST URI (`kebab-case`, số nhiều cho resource).
+
+---
+
+## 5. Chạy nhanh cục bộ (Docker + Flyway + Maven Wrapper)
+
+### Bước 1: Chuẩn bị biến môi trường
+```powershell
+Copy-Item .env.example .env
+# Cập nhật MYSQL_*, JWT_SECRET, GEMINI_API_KEY trong .env
+```
+
+### Bước 2: Khởi động MySQL 8.0 bằng Docker
+```powershell
+docker compose up -d
+docker compose ps
+```
+*(MySQL chạy ở cổng `3307` mặc định, UTF-8 `utf8mb4_unicode_ci`, múi giờ UTC; schema được Flyway tự động migrate khi Backend khởi động).*
+
+### Bước 3: Biên dịch & chạy Backend với Maven Wrapper
+```powershell
+cd backend
+.\mvnw.cmd test-compile
+.\mvnw.cmd test
+.\mvnw.cmd spring-boot:run
+```
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- API Base URL: `http://localhost:8080/api/v1`
+
+### Bước 4: Chạy Desktop Client (`/desktop`)
+```powershell
+cd desktop
+npm install
+npm run electron:dev
+```
