@@ -1,10 +1,12 @@
 package com.aistudy.assistant.ai.worker;
 
+import com.aistudy.assistant.ai.dto.AiJobResponse;
 import com.aistudy.assistant.ai.entity.AiJob;
 import com.aistudy.assistant.ai.entity.AiJobStatus;
 import com.aistudy.assistant.ai.entity.AiJobType;
 import com.aistudy.assistant.ai.entity.AiSummary;
 import com.aistudy.assistant.ai.entity.SummaryLength;
+import com.aistudy.assistant.ai.mapper.AiMapper;
 import com.aistudy.assistant.ai.repository.AiJobRepository;
 import com.aistudy.assistant.ai.repository.AiSummaryRepository;
 import com.aistudy.assistant.ai.service.AiQuizValidator;
@@ -61,6 +63,7 @@ public class AiJobTxService {
     private final QuizMaterialRepository quizMaterialRepository;
     private final QuestionRepository questionRepository;
     private final QuestionOptionRepository questionOptionRepository;
+    private final AiMapper aiMapper;
 
     public record ClaimedJobSnapshot(
             String jobId,
@@ -278,5 +281,10 @@ public class AiJobTxService {
             job.setFinishedAt(Instant.now());
             aiJobRepository.save(job);
         });
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<AiJobResponse> findJobResponse(String jobId) {
+        return aiJobRepository.findById(jobId).map(aiMapper::toJobResponse);
     }
 }

@@ -30,6 +30,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này."),
     NOT_RESOURCE_OWNER(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập tài nguyên này."),
     NOT_CLASS_MEMBER(HttpStatus.FORBIDDEN, "Bạn không phải thành viên của lớp học này."),
+    NOT_CONVERSATION_MEMBER(HttpStatus.FORBIDDEN, "Bạn không phải thành viên của cuộc trò chuyện này."),
     ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần."),
     ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "Tài khoản đã bị vô hiệu hóa."),
 
@@ -48,6 +49,19 @@ public enum ErrorCode {
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy câu hỏi."),
     CLASS_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lớp học."),
     CLASS_CODE_INVALID(HttpStatus.NOT_FOUND, "Mã lớp học không hợp lệ hoặc lớp đã đóng."),
+    JOIN_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu tham gia lớp học."),
+    CLASS_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài đăng trong lớp học."),
+    CLASS_MATERIAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu lớp học."),
+    ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài tập."),
+    SUBMISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài nộp."),
+    SUBMISSION_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tệp bài nộp."),
+    CLASS_TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài kiểm tra."),
+    EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy sự kiện."),
+    CALENDAR_IMPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phiên nhập lịch."),
+    EXTERNAL_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy kết nối tài khoản ngoài."),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông báo."),
+    CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy cuộc trò chuyện."),
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tin nhắn."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "Đường dẫn API không tồn tại."),
 
     // 405 Method Not Allowed
@@ -72,6 +86,7 @@ public enum ErrorCode {
     AI_OUTPUT_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Kết quả từ AI không đạt cấu trúc hợp lệ."),
     ATTEMPT_EXPIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Đã quá thời gian làm bài."),
     MAX_ATTEMPTS_REACHED(HttpStatus.UNPROCESSABLE_ENTITY, "Bạn đã hết số lần làm bài cho phép."),
+    TEST_WINDOW_CLOSED(HttpStatus.UNPROCESSABLE_ENTITY, "Hiện không nằm trong thời gian mở bài kiểm tra."),
 
     // 429 Too Many Requests
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "Bạn thao tác quá nhanh. Vui lòng thử lại sau."),

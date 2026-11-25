@@ -45,6 +45,18 @@ spring:
             max-file-size: 20MB
             max-request-size: 20MB
 
+    mail:
+        host: ${MAIL_HOST:localhost}
+        port: ${MAIL_PORT:587}
+        username: ${MAIL_USERNAME:}
+        password: ${MAIL_PASSWORD:}
+        properties:
+            mail:
+                smtp:
+                    auth: ${MAIL_SMTP_AUTH:true}
+                    starttls:
+                        enable: ${MAIL_SMTP_STARTTLS:true}
+
 logging:
     pattern:
         level: "%5p [traceId=%X{traceId:-none}]"
@@ -61,6 +73,19 @@ app:
         timeout-seconds: 60
     upload:
         dir: ${UPLOAD_DIR:uploads}
+    mail:
+        enabled: ${MAIL_ENABLED:false}
+        from: ${MAIL_FROM:noreply@aistudy.local}
+    notification:
+        worker-poll-ms: ${NOTIFICATION_WORKER_POLL_MS:5000}
+        reminder-poll-ms: ${NOTIFICATION_REMINDER_POLL_MS:900000}
+    google:
+        client-id: ${GOOGLE_CLIENT_ID:}
+        client-secret: ${GOOGLE_CLIENT_SECRET:}
+        redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/v1/integrations/google/callback}
+        allow-personal-accounts: ${GOOGLE_ALLOW_PERSONAL_ACCOUNTS:false}
+    security:
+        encryption-key: ${APP_ENCRYPTION_KEY:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
 
 springdoc:
     api-docs:

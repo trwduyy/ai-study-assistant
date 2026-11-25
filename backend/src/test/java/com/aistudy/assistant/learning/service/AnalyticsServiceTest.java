@@ -1,5 +1,10 @@
 package com.aistudy.assistant.learning.service;
 
+import com.aistudy.assistant.assignment.repository.AssignmentRepository;
+import com.aistudy.assistant.classroom.entity.ClassRole;
+import com.aistudy.assistant.classroom.entity.Classroom;
+import com.aistudy.assistant.classroom.repository.ClassMemberRepository;
+import com.aistudy.assistant.classroom.repository.ClassMemberRepository.ActiveClassRoleProjection;
 import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.identity.entity.UserRole;
 import com.aistudy.assistant.identity.entity.UserStatus;
@@ -17,6 +22,12 @@ import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository.OverviewStatsProjection;
+import com.aistudy.assistant.notification.repository.NotificationRepository;
+import com.aistudy.assistant.schedule.entity.Event;
+import com.aistudy.assistant.schedule.entity.EventSource;
+import com.aistudy.assistant.schedule.entity.EventStatus;
+import com.aistudy.assistant.schedule.entity.EventType;
+import com.aistudy.assistant.schedule.repository.EventRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +46,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +62,14 @@ class AnalyticsServiceTest {
     private QuizAttemptRepository quizAttemptRepository;
     @Mock
     private AttemptAnswerRepository attemptAnswerRepository;
+    @Mock
+    private AssignmentRepository assignmentRepository;
+    @Mock
+    private NotificationRepository notificationRepository;
+    @Mock
+    private ClassMemberRepository classMemberRepository;
+    @Mock
+    private EventRepository eventRepository;
 
     @InjectMocks
     private AnalyticsServiceImpl analyticsService;
@@ -75,7 +96,7 @@ class AnalyticsServiceTest {
     }
 
     @Test
-    @DisplayName("getOverview and getStudentDashboard aggregate metrics and keep phase 2-5 fields empty")
+    @DisplayName("getOverview and getStudentDashboard aggregate metrics including 7-day upcoming events")
     void getOverviewAndDashboard_AggregateCleanly() {
         OverviewStatsProjection stats = mock(OverviewStatsProjection.class);
         when(stats.getTotalAttempts()).thenReturn(4L);
@@ -92,6 +113,33 @@ class AnalyticsServiceTest {
                 )));
         when(attemptAnswerRepository.findTopicPerformance(10L, AttemptStatus.SUBMITTED)).thenReturn(List.of());
 
+        ActiveClassRoleProjection roleProj = mock(ActiveClassRoleProjection.class);
+        when(roleProj.getClassId()).thenReturn(100L);
+        when(classMemberRepository.findActiveClassRolesByUserId(10L)).thenReturn(List.of(roleProj));
+
+        Classroom classroom = Classroom.builder().id(100L).name("Lập trình Mạng").build();
+        Event upcomingEvent = Event.builder()
+                .id(1001L)
+                .classroom(classroom)
+                .type(EventType.MEETING)
+                .title("Họp đồ án")
+                .startAt(Instant.now().plusSeconds(7200))
+                .endAt(Instant.now().plusSeconds(10800))
+                .timezone("Asia/Ho_Chi_Minh")
+                .status(EventStatus.UPCOMING)
+                .meetingUrl("https://meet.google.com/abc-defg-hij")
+                .source(EventSource.MANUAL)
+                .build();
+        when(eventRepository.findUpcomingCalendarEventsForDashboard(
+                eq(10L), eq(List.of(100L)), any(Instant.class), any(Instant.class), eq(PageRequest.of(0, 10))))
+                .thenReturn(List.of(upcomingEvent));
+
+        when(assignmentRepository.findUpcomingUnsubmittedForStudent(eq(10L), any(Instant.class), eq(PageRequest.of(0, 5))))
+                .thenReturn(List.of(new StudentDashboardResponse.DueAssignmentSummary(
+                        401L, 100L, "Lập trình Mạng", "Socket TCP", Instant.now().plusSeconds(3600), true, new BigDecimal("10.00")
+                )));
+        when(notificationRepository.countByUserIdAndReadAtIsNull(10L)).thenReturn(3L);
+
         AnalyticsOverviewResponse overview = analyticsService.getOverview();
         StudentDashboardResponse dashboard = analyticsService.getStudentDashboard();
 
@@ -99,9 +147,11 @@ class AnalyticsServiceTest {
         assertEquals(9L, overview.totalMaterials());
         assertEquals(77.5, overview.accuracyRate());
         assertEquals(1, dashboard.recentAttempts().size());
-        assertTrue(dashboard.upcomingEvents().isEmpty());
-        assertTrue(dashboard.dueAssignments().isEmpty());
-        assertEquals(0L, dashboard.unreadNotificationCount());
+        assertEquals(1, dashboard.upcomingEvents().size());
+        assertEquals(1001L, dashboard.upcomingEvents().get(0).eventId());
+        assertEquals(1, dashboard.dueAssignments().size());
+        assertEquals(401L, dashboard.dueAssignments().get(0).assignmentId());
+        assertEquals(3L, dashboard.unreadNotificationCount());
         assertTrue(dashboard.todayTasks().isEmpty());
     }
 

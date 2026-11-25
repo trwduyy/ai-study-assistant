@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ class AiJobWorkerTest {
     private AiJobTxService aiJobTxService;
     @Mock
     private GeminiClientService geminiClientService;
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
 
     private AiJobWorker worker;
 
@@ -48,7 +51,8 @@ class AiJobWorkerTest {
                 geminiClientService,
                 new ChunkGroundingService(),
                 new AiQuizValidator(objectMapper),
-                objectMapper
+                objectMapper,
+                messagingTemplate
         );
     }
 

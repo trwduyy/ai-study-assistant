@@ -1,5 +1,6 @@
 package com.aistudy.assistant.ai.worker;
 
+import com.aistudy.assistant.ai.dto.AiJobResponse;
 import com.aistudy.assistant.ai.entity.AiJob;
 import com.aistudy.assistant.ai.entity.AiJobStatus;
 import com.aistudy.assistant.ai.entity.SummaryLength;
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -53,6 +55,7 @@ public class AiJobWorker {
     private final ChunkGroundingService chunkGroundingService;
     private final AiQuizValidator aiQuizValidator;
     private final ObjectMapper objectMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Async("aiJobExecutor")
     public void processJobAsync(String jobId) {
@@ -95,6 +98,24 @@ public class AiJobWorker {
                     ErrorCode.INTERNAL_ERROR.name(),
                     "Xử lý tác vụ AI thất bại: " + ex.getMessage()
             );
+        } finally {
+            pushJobCompletionUpdate(job);
+        }
+    }
+
+    private void pushJobCompletionUpdate(ClaimedJobSnapshot job) {
+        try {
+            aiJobTxService.findJobResponse(job.jobId()).ifPresent(dto -> {
+                if (dto.status() == AiJobStatus.SUCCEEDED || dto.status() == AiJobStatus.FAILED) {
+                    messagingTemplate.convertAndSendToUser(
+                            String.valueOf(job.userId()),
+                            "/queue/ai-jobs",
+                            dto
+                    );
+                }
+            });
+        } catch (Exception ex) {
+            log.warn("Failed to push WebSocket update for AI job {}: {}", job.jobId(), ex.getMessage());
         }
     }
 

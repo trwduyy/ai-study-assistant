@@ -1,5 +1,6 @@
 package com.aistudy.assistant.learning.repository;
 
+import com.aistudy.assistant.assignment.dto.ClassTestResultsResponse;
 import com.aistudy.assistant.learning.dto.QuizAttemptSummaryResponse;
 import com.aistudy.assistant.learning.dto.ScoreTrendItemResponse;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse;
@@ -33,6 +34,11 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
 
     @EntityGraph(attributePaths = {"quiz", "user"})
     Optional<QuizAttempt> findWithQuizAndUserById(Long id);
+
+    @EntityGraph(attributePaths = {"quiz", "user"})
+    Optional<QuizAttempt> findWithQuizAndUserByIdAndTestId(Long id, Long testId);
+
+    long countByTestIdAndUserId(Long testId, Long userId);
 
     @Query(
             value = """
@@ -128,5 +134,30 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
             @Param("userId") Long userId,
             @Param("status") AttemptStatus status,
             Pageable pageable
+    );
+
+    @Query("""
+            SELECT new com.aistudy.assistant.assignment.dto.ClassTestResultsResponse$StudentTestResultDto(
+                u.id,
+                u.fullName,
+                u.email,
+                COUNT(qa.id),
+                CAST(MAX(CASE WHEN qa.status = com.aistudy.assistant.learning.entity.AttemptStatus.SUBMITTED
+                             THEN qa.score ELSE NULL END) AS double),
+                MAX(CASE WHEN qa.status = com.aistudy.assistant.learning.entity.AttemptStatus.SUBMITTED
+                         THEN qa.submittedAt ELSE NULL END)
+            )
+            FROM ClassMember cm
+            JOIN cm.user u
+            LEFT JOIN QuizAttempt qa ON qa.testId = :testId AND qa.user.id = u.id
+            WHERE cm.classroom.id = :classId
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+              AND cm.classRole = com.aistudy.assistant.classroom.entity.ClassRole.STUDENT
+            GROUP BY u.id, u.fullName, u.email
+            ORDER BY u.fullName ASC, u.id ASC
+            """)
+    List<ClassTestResultsResponse.StudentTestResultDto> findClassTestStudentResults(
+            @Param("classId") Long classId,
+            @Param("testId") Long testId
     );
 }
