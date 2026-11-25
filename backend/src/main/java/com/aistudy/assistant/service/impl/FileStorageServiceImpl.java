@@ -84,10 +84,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Files.copy(file.getInputStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
             String relativeStoragePath = String.valueOf(userId) + "/" + uniqueFileName;
 
-            String determinedContentType = file.getContentType();
-            if (!StringUtils.hasText(determinedContentType)) {
-                determinedContentType = determineContentTypeByExtension(extension);
-            }
+            String storedFileType = extension.toUpperCase(Locale.ROOT);
 
             log.info("File stored successfully: {} (size: {} bytes, path: {})",
                     rawOriginalName, file.getSize(), relativeStoragePath);
@@ -95,7 +92,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             return new StoredFile(
                     uniqueFileName,
                     rawOriginalName,
-                    determinedContentType,
+                    storedFileType,
                     file.getSize(),
                     relativeStoragePath,
                     destinationPath

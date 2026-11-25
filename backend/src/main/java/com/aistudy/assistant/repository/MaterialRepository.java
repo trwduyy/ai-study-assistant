@@ -18,6 +18,10 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
 
     Optional<Material> findByIdAndUserId(Long id, Long userId);
 
+    boolean existsByIdAndUserId(Long id, Long userId);
+
+    long countByUserId(Long userId);
+
     long countByCourseId(Long courseId);
 
     long countByTopicId(Long topicId);

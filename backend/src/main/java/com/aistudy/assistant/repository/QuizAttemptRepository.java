@@ -18,6 +18,14 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
 
     Optional<QuizAttempt> findByIdAndUserId(Long id, Long userId);
 
+    @Query("SELECT DISTINCT a FROM QuizAttempt a " +
+            "JOIN FETCH a.quiz " +
+            "LEFT JOIN FETCH a.answers ans " +
+            "LEFT JOIN FETCH ans.question q " +
+            "WHERE a.id = :id AND a.user.id = :userId " +
+            "ORDER BY q.orderIndex ASC, q.id ASC")
+    Optional<QuizAttempt> findWithDetailsByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
     long countByUserId(Long userId);
 
     @Query("SELECT AVG(a.score) FROM QuizAttempt a WHERE a.user.id = :userId")
@@ -29,6 +37,6 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
     @Query("SELECT COUNT(a) FROM QuizAttempt a WHERE a.quiz.course.id = :courseId AND a.user.id = :userId")
     long countAttemptsByCourseIdAndUserId(@Param("courseId") Long courseId, @Param("userId") Long userId);
 
-    @Query("SELECT a FROM QuizAttempt a WHERE a.quiz.course.id = :courseId AND a.user.id = :userId ORDER BY a.startedAt DESC")
+    @Query("SELECT a FROM QuizAttempt a JOIN FETCH a.quiz WHERE a.quiz.course.id = :courseId AND a.user.id = :userId ORDER BY a.startedAt DESC")
     List<QuizAttempt> findAttemptsByCourseIdAndUserIdOrderByStartedAtDesc(@Param("courseId") Long courseId, @Param("userId") Long userId);
 }

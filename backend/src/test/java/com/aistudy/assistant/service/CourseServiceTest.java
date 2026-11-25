@@ -29,13 +29,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,9 +123,49 @@ class CourseServiceTest {
     }
 
     @Test
+    @DisplayName("Should retrieve user courses with batch topic and material counts without N+1 queries")
+    void getUserCourses_BatchCounts_Success() {
+        when(courseRepository.findByUserIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(mockCourse));
+        when(courseRepository.countTopicsByCourseIds(List.of(10L))).thenReturn(List.of(
+                new CourseRepository.CourseCountProjection() {
+                    @Override
+                    public Long getCourseId() {
+                        return 10L;
+                    }
+
+                    @Override
+                    public Long getTotal() {
+                        return 3L;
+                    }
+                }
+        ));
+        when(courseRepository.countMaterialsByCourseIds(List.of(10L))).thenReturn(List.of(
+                new CourseRepository.CourseCountProjection() {
+                    @Override
+                    public Long getCourseId() {
+                        return 10L;
+                    }
+
+                    @Override
+                    public Long getTotal() {
+                        return 7L;
+                    }
+                }
+        ));
+
+        List<CourseResponse> responses = courseService.getUserCourses();
+
+        assertEquals(1, responses.size());
+        assertEquals(3L, responses.get(0).getTopicCount());
+        assertEquals(7L, responses.get(0).getMaterialCount());
+        verify(courseRepository, never()).countTopicsByCourseId(anyLong());
+        verify(courseRepository, never()).countMaterialsByCourseId(anyLong());
+    }
+
+    @Test
     @DisplayName("Should retrieve course details when authenticated user owns the course")
     void getCourseDetail_OwnershipValidated_Success() {
-        when(courseRepository.findByIdAndUserId(10L, 1L)).thenReturn(Optional.of(mockCourse));
+        when(courseRepository.findWithTopicsByIdAndUserId(10L, 1L)).thenReturn(Optional.of(mockCourse));
 
         CourseDetailResponse response = courseService.getCourseDetail(10L);
 
@@ -135,7 +177,7 @@ class CourseServiceTest {
     @Test
     @DisplayName("Should throw ResourceNotFoundException when course does not belong to user")
     void getCourseDetail_UnauthorizedCourse_ThrowsNotFound() {
-        when(courseRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
+        when(courseRepository.findWithTopicsByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> courseService.getCourseDetail(99L));
     }

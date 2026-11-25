@@ -47,8 +47,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public AnalyticsOverviewResponse getOverviewAnalytics() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
 
-        long totalCourses = courseRepository.findByUserIdOrderByCreatedAtDesc(currentUserId).size();
-        long totalMaterials = materialRepository.findByUserIdOrderByCreatedAtDesc(currentUserId).size();
+        long totalCourses = courseRepository.countByUserId(currentUserId);
+        long totalMaterials = materialRepository.countByUserId(currentUserId);
         long totalQuizzesTaken = quizAttemptRepository.countByUserId(currentUserId);
 
         Double avgScoreVal = quizAttemptRepository.calculateAverageScoreByUserId(currentUserId);

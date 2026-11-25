@@ -1,0 +1,1890 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>AI Study Assistant – Tài liệu Phân tích &amp; Thiết kế Hệ thống</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+/* Override strong tags inside headings to maintain consistent weight */
+h1 strong,
+h2 strong,
+h3 strong {
+	font-weight: 600;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 10px;
+	padding: 1rem;
+	/* Paint a complete callout box on every PDF page fragment. */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+
+/* For default-background callouts, render the border outline. */
+.callout.block-color-default_background {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+/*
+ * Toggles and callouts hold arbitrary content, so they can easily be taller
+ * than a page. They must stay breakable: avoiding breaks inside them makes
+ * Chromium push the whole block onto the next page, which leaves the previous
+ * page mostly empty before every long toggle.
+ */
+details,
+aside {
+	margin: 1.25em 0;
+}
+
+/* Keep a toggle's title on the same page as the start of its content. */
+summary {
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+/*
+ * Toggle headings render as <h1/h2/h3 style="display:inline-block"> inside
+ * <summary>. Without this reset, the heading's margin-top pushes it below the
+ * ::marker (▼), so the triangle and the title appear on separate lines.
+ */
+summary h1,
+summary h2,
+summary h3,
+summary h4 {
+	margin-top: 0;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+
+	table.collection-content {
+		width: 100%;
+		table-layout: fixed;
+	}
+
+	table.collection-content th,
+	table.collection-content td {
+		overflow-wrap: anywhere;
+	}
+
+	table.collection-content td > .user,
+	table.collection-content td > time {
+		white-space: pre-wrap;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content-wrapper {
+	overflow-x: auto;
+}
+
+@media only print {
+	.collection-content-wrapper {
+		overflow-x: visible;
+	}
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.collection-content td {
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.column-list {
+	display: flex;
+	gap: 46px;
+}
+
+.column {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.column > *:first-child {
+	margin-top: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding-inline: 0.125rem;
+	padding-block: 0.375rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+table {
+	border-collapse: collapse;
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol.numbered-list.numbered-list-digits-2 {
+	padding-inline-start: 2em;
+}
+
+ol.numbered-list.numbered-list-digits-3plus {
+	padding-inline-start: 2.4em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+/*
+ * Render emoji icons using a ::before pseudo-element to keep the glyph
+ * out of the DOM textContent traversal. This avoids double-rendering icons
+ * in callouts and page titles.
+ * NOTE(slim/html-export-pseudo-icons): I can't tagref this because it will
+ * flag as a duplicate tag after codegen.
+ */
+.icon[data-emoji]::before {
+	content: attr(data-emoji);
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.callout img.notion-static-icon {
+	width: 1em;
+	height: 1em;
+}
+
+.callout p {
+	margin: 0;
+}
+
+.callout h1,
+.callout h2,
+.callout h3 {
+	margin: 0 0 0.6rem;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	margin-right: 0.4em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+blockquote.quote-large {
+	font-size: 1.25em;
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.tab {
+	margin: 1.25em 0;
+	padding-inline: 1rem;
+	border: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", "Noto Sans Arabic", "Noto Sans Hebrew", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.highlight-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.highlight-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.highlight-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.highlight-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.highlight-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.highlight-default_background {
+	color: rgba(44, 44, 43, 1);
+}
+.highlight-gray_background {
+	background: rgba(42, 28, 0, 0.07);
+}
+.highlight-brown_background {
+	background: rgba(139, 46, 0, 0.086);
+}
+.highlight-orange_background {
+	background: rgba(224, 101, 1, 0.129);
+}
+.highlight-yellow_background {
+	background: rgba(211, 168, 0, 0.137);
+}
+.highlight-teal_background {
+	background: rgba(0, 100, 45, 0.09);
+}
+.highlight-blue_background {
+	background: rgba(0, 124, 215, 0.094);
+}
+.highlight-purple_background {
+	background: rgba(102, 0, 178, 0.078);
+}
+.highlight-pink_background {
+	background: rgba(197, 0, 93, 0.086);
+}
+.highlight-red_background {
+	background: rgba(223, 22, 0, 0.094);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(125, 122, 117, 1);
+	fill: rgba(125, 122, 117, 1);
+}
+.block-color-brown {
+	color: rgba(159, 118, 90, 1);
+	fill: rgba(159, 118, 90, 1);
+}
+.block-color-orange {
+	color: rgba(210, 123, 45, 1);
+	fill: rgba(210, 123, 45, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 148, 52, 1);
+	fill: rgba(203, 148, 52, 1);
+}
+.block-color-teal {
+	color: rgba(80, 148, 110, 1);
+	fill: rgba(80, 148, 110, 1);
+}
+.block-color-blue {
+	color: rgba(56, 125, 201, 1);
+	fill: rgba(56, 125, 201, 1);
+}
+.block-color-purple {
+	color: rgba(154, 107, 180, 1);
+	fill: rgba(154, 107, 180, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(207, 81, 72, 1);
+	fill: rgba(207, 81, 72, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(240, 239, 237, 1);
+}
+.block-color-brown_background {
+	background: rgba(245, 237, 233, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 235, 222, 1);
+}
+.block-color-yellow_background {
+	background: rgba(249, 243, 220, 1);
+}
+.block-color-teal_background {
+	background: rgba(232, 241, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(229, 242, 252, 1);
+}
+.block-color-purple_background {
+	background: rgba(243, 235, 249, 1);
+}
+.block-color-pink_background {
+	background: rgba(250, 233, 241, 1);
+}
+.block-color-red_background {
+	background: rgba(252, 233, 231, 1);
+}
+.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
+.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
+.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
+.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
+.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
+.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
+.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
+.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
+.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
+.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style></head><body><article id="42372f78-9858-8045-9b0c-f27f14649bcd" class="page sans"><header><h1 class="page-title" dir="auto">AI Study Assistant – Tài liệu Phân tích &amp; Thiết kế Hệ thống</h1><p class="page-description" dir="auto"></p></header><div class="page-body"><p id="42372f78-9858-8046-ad3d-f2d1f37ea8d3" class="" dir="auto">Phiên bản 1.0 · Dựa trên Project Specification v1 · Ngày 24/11/2026</p><h2 id="42372f78-9858-802f-badc-f1be2ec58055" class="" dir="auto">1. Giới thiệu</h2><h3 id="42372f78-9858-8007-a73a-cc10f72bb980" class="" dir="auto">1.1 Mục đích và phạm vi</h3><p id="42372f78-9858-80cd-8783-f3b0314d4dfa" class="" dir="auto">Tài liệu mô tả phân tích và thiết kế hệ thống <strong>AI Study Assistant</strong>: ứng dụng Desktop (Electron + React/TypeScript) gọi Backend REST/WebSocket (Java Spring Boot, MySQL), hỗ trợ chu trình học tập <em>Organize → Understand → Practice → Evaluate → Improve</em> và mở rộng sang lớp học, bài tập, lịch, chat, thông báo.</p><p id="42372f78-9858-8083-9fb7-fec182d31a37" class="" dir="auto">Tài liệu gồm: đặc tả yêu cầu, actor, chức năng, API contract, API endpoints, use case, activity diagram, sequence diagram và ERD.</p><h3 id="42372f78-9858-80ca-9704-ea0773247c01" class="" dir="auto">1.2 Các quyết định đã chốt (từ mục Open Decisions)</h3><table id="42372f78-9858-8023-a6ec-fdbf81322875" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="a6672f78-9858-82ce-9316-01598120dd19" dir="ltr"><th id="bCWi" class="simple-table-header-color simple-table-header">Mã</th><th id="KUQA" class="simple-table-header-color simple-table-header">Quyết định</th><th id="OiyC" class="simple-table-header-color simple-table-header">Ảnh hưởng thiết kế</th></tr></thead><tbody><tr id="61472f78-9858-835d-b8f1-01f98f89d77a" dir="ltr"><td id="bCWi" class="">D-01</td><td id="KUQA" class="">Sinh viên gửi yêu cầu bằng mã lớp, giảng viên duyệt mới thành viên</td><td id="OiyC" class="">Bảng <code>class_join_request</code>, trạng thái PENDING/APPROVED/REJECTED</td></tr><tr id="29b72f78-9858-82e1-ae44-81df22a26e04" dir="ltr"><td id="bCWi" class="">D-02</td><td id="KUQA" class="">Bài trắc nghiệm và bài nộp file chỉ nộp <strong>một lần</strong> mặc định</td><td id="OiyC" class="">Unique constraint (bài, sinh viên); cho phép giảng viên mở lại nộp</td></tr><tr id="22972f78-9858-83b6-98a2-014e6aeacfb2" dir="ltr"><td id="bCWi" class="">D-03</td><td id="KUQA" class="">Thông báo gửi cả trong ứng dụng và email</td><td id="OiyC" class="">Outbox có kênh IN_APP và EMAIL</td></tr><tr id="aa372f78-9858-8381-b104-01c2f8457296" dir="ltr"><td id="bCWi" class="">D-04</td><td id="KUQA" class="">Import lịch hỗ trợ .ics và CSV theo mẫu</td><td id="OiyC" class="">Hai bộ parser, bước xem trước và xác nhận trùng giờ</td></tr><tr id="62872f78-9858-825c-8eaa-01d1a67f0aeb" dir="ltr"><td id="bCWi" class="">D-05</td><td id="KUQA" class="">Chỉ có ứng dụng Desktop, không có Web Portal</td><td id="OiyC" class="">Giảng viên dùng cùng ứng dụng, menu theo vai trò</td></tr><tr id="e7f72f78-9858-8330-9d4a-813db176642b" dir="ltr"><td id="bCWi" class="">D-06</td><td id="KUQA" class="">Google Calendar <strong>chỉ đọc</strong>, không ghi ngược</td><td id="OiyC" class="">OAuth scope chỉ đọc; task cá nhân chỉ lưu trong hệ thống</td></tr><tr id="be172f78-9858-8294-8266-81a46741cc36" dir="ltr"><td id="bCWi" class="">D-07</td><td id="KUQA" class="">Phạm vi áp dụng: Học viện Kỹ thuật Mật mã</td><td id="OiyC" class="">Cần chính sách dữ liệu, tài khoản tổ chức</td></tr></tbody></table><h3 id="42372f78-9858-8079-9e25-ca74f72db982" class="" dir="auto">1.3 Điểm mâu thuẫn trong đặc tả và cách xử lý</h3><p id="42372f78-9858-803c-bea7-c185f873b643" class="" dir="auto">Mục 13.4 nói tạo link Meet qua Google Calendar API (cần quyền ghi), nhưng mục 23 chốt Google Calendar chỉ đọc. Tài liệu này theo <strong>mục 23</strong>: giảng viên <strong>dán link Meet thủ công</strong> khi tạo sự kiện; Google Calendar chỉ dùng để đọc/đồng bộ lịch vào ứng dụng. Việc tạo Meet tự động được đánh dấu <em>tùy chọn, cần quyết định lại</em> (xem mục 3.6).</p><h3 id="42372f78-9858-8009-8ec7-d9cc835dbb15" class="" dir="auto">1.4 Thuật ngữ</h3><table id="42372f78-9858-8063-8921-c80c960f8aa7" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="e4c72f78-9858-82de-81b6-81f64c46b968" dir="ltr"><th id="Tdyz" class="simple-table-header-color simple-table-header">Thuật ngữ</th><th id="ZU\A" class="simple-table-header-color simple-table-header">Ý nghĩa</th></tr></thead><tbody><tr id="f9e72f78-9858-82fa-952a-81d3774d0152" dir="ltr"><td id="Tdyz" class="">Chunk</td><td id="ZU\A" class="">Đoạn văn bản nhỏ được cắt từ tài liệu để gửi AI</td></tr><tr id="43b72f78-9858-8212-84a1-01ad16089f00" dir="ltr"><td id="Tdyz" class="">RAG</td><td id="ZU\A" class="">Truy xuất các đoạn liên quan rồi mới hỏi AI, kèm nguồn</td></tr><tr id="b0272f78-9858-83a9-a6df-81b2564dd9bc" dir="ltr"><td id="Tdyz" class="">Job AI</td><td id="ZU\A" class="">Tác vụ AI chạy bất đồng bộ, có trạng thái</td></tr><tr id="70b72f78-9858-83b6-8a73-81fde5e012dd" dir="ltr"><td id="Tdyz" class="">Outbox</td><td id="ZU\A" class="">Bảng sự kiện ghi cùng transaction để worker gửi sau</td></tr><tr id="d9772f78-9858-83eb-a345-0132b796034c" dir="ltr"><td id="Tdyz" class="">Idempotency key</td><td id="ZU\A" class="">Khóa chống thực hiện lặp khi client gửi lại</td></tr></tbody></table><h2 id="42372f78-9858-8088-995a-ef4ef2d1b2ec" class="" dir="auto">2. Actor</h2><table id="42372f78-9858-8036-b831-d9dfc36b0f75" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="79872f78-9858-8358-9af3-01b43513e808" dir="ltr"><th id="Yes&lt;" class="simple-table-header-color simple-table-header">Actor</th><th id="]R=N" class="simple-table-header-color simple-table-header">Loại</th><th id="CL&gt;d" class="simple-table-header-color simple-table-header">Mô tả và quyền chính</th></tr></thead><tbody><tr id="2ca72f78-9858-8396-8d04-0161428847b9" dir="ltr"><td id="Yes&lt;" class="">Student (Sinh viên)</td><td id="]R=N" class="">Chính</td><td id="CL&gt;d" class="">Quản lý khóa học/tài liệu cá nhân, học với AI, làm quiz, tham gia lớp, nộp bài, xem lịch, chat, lập kế hoạch</td></tr><tr id="24f72f78-9858-834d-9dfe-81247766a7ea" dir="ltr"><td id="Yes&lt;" class="">Teacher (Giảng viên)</td><td id="]R=N" class="">Chính</td><td id="CL&gt;d" class="">Tạo/quản lý lớp, duyệt thành viên, đăng tài liệu, giao bài, tạo bài kiểm tra, chấm điểm, tạo sự kiện, theo dõi lớp. Chỉ quản lý lớp mình được phân quyền</td></tr><tr id="c2d72f78-9858-8286-a342-8121ba3fee1b" dir="ltr"><td id="Yes&lt;" class="">Administrator (Quản trị viên)</td><td id="]R=N" class="">Chính</td><td id="CL&gt;d" class="">Quản lý tài khoản, vai trò, lớp, báo cáo, cấu hình, hạn mức AI, cho phép tài khoản Google cá nhân</td></tr><tr id="34872f78-9858-83f1-a410-815f5c62d8e6" dir="ltr"><td id="Yes&lt;" class="">AI Provider (Gemini hoặc tương đương)</td><td id="]R=N" class="">Hệ thống ngoài</td><td id="CL&gt;d" class="">Tóm tắt, giải thích, hỏi đáp, sinh quiz/flashcard/kế hoạch. Chỉ Backend gọi</td></tr><tr id="3e072f78-9858-82b3-921c-81983f5455ae" dir="ltr"><td id="Yes&lt;" class="">Google Calendar API</td><td id="]R=N" class="">Hệ thống ngoài</td><td id="CL&gt;d" class="">Cung cấp dữ liệu lịch (chỉ đọc) qua OAuth</td></tr><tr id="a9d72f78-9858-8268-abbc-01fe62ce4454" dir="ltr"><td id="Yes&lt;" class="">Email Service (SMTP)</td><td id="]R=N" class="">Hệ thống ngoài</td><td id="CL&gt;d" class="">Gửi thông báo email</td></tr><tr id="5c472f78-9858-832b-a46d-014505a8d619" dir="ltr"><td id="Yes&lt;" class="">File Processing Engine</td><td id="]R=N" class="">Thành phần nội bộ</td><td id="CL&gt;d" class="">Trích xuất, chuẩn hóa, chia chunk PDF/DOCX/TXT (PDFBox, POI)</td></tr><tr id="0aa72f78-9858-82fc-a0fb-81fbd249d3c4" dir="ltr"><td id="Yes&lt;" class="">Notification Worker</td><td id="]R=N" class="">Thành phần nội bộ</td><td id="CL&gt;d" class="">Đọc outbox, gửi thông báo, retry, chống trùng</td></tr><tr id="f4e72f78-9858-82d9-8342-0100cc9136ac" dir="ltr"><td id="Yes&lt;" class="">Scheduler</td><td id="]R=N" class="">Thành phần nội bộ</td><td id="CL&gt;d" class="">Kích hoạt nhắc hạn nộp, nhắc lịch theo mốc cấu hình</td></tr></tbody></table><p id="42372f78-9858-8056-a760-c1ebc51d01ee" class="" dir="auto">Quan hệ vai trò: Teacher và Admin cũng có thể dùng chức năng học cá nhân của Student (tùy cấu hình).</p><h2 id="42372f78-9858-80f2-bd46-f7043851fe38" class="" dir="auto">3. Đặc tả yêu cầu</h2><p id="42372f78-9858-8002-8e04-eb2288473743" class="" dir="auto">Ưu tiên: <strong>M</strong> = bắt buộc (MVP), <strong>S</strong> = nên có, <strong>C</strong> = có thể làm sau. Phase theo mục 22 của đặc tả.</p><h3 id="42372f78-9858-8044-ad63-fccf262fd8f1" class="" dir="auto">3.1 Danh mục chức năng và use case</h3><table id="42372f78-9858-8055-8183-f5fe1b2509e3" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="68972f78-9858-833c-ac25-814ea6249edd" dir="ltr"><th id="bis|" class="simple-table-header-color simple-table-header">FR</th><th id="zBrW" class="simple-table-header-color simple-table-header">Module</th><th id=";MV&lt;" class="simple-table-header-color simple-table-header">Use case</th><th id="Ng`n" class="simple-table-header-color simple-table-header">Actor</th><th id="l??T" class="simple-table-header-color simple-table-header">Ưu tiên</th><th id="=:CQ" class="simple-table-header-color simple-table-header">Phase</th></tr></thead><tbody><tr id="ef672f78-9858-82b3-9b4b-01aed1785228" dir="ltr"><td id="bis|" class="">FR-01</td><td id="zBrW" class="">Identity</td><td id=";MV&lt;" class="">UC-01 Đăng ký · UC-02 Đăng nhập · UC-03 Đăng xuất · UC-04 Xem/sửa hồ sơ · UC-05 Đổi mật khẩu</td><td id="Ng`n" class="">Mọi vai trò</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="fe372f78-9858-8379-af63-81db5181c046" dir="ltr"><td id="bis|" class="">FR-02</td><td id="zBrW" class="">Course</td><td id=";MV&lt;" class="">UC-06 Quản lý khóa học · UC-07 Quản lý chương · UC-08 Quản lý chủ đề</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="63a72f78-9858-8385-8ce7-8161e1e5f714" dir="ltr"><td id="bis|" class="">FR-03</td><td id="zBrW" class="">Material</td><td id=";MV&lt;" class="">UC-09 Tải tài liệu lên · UC-10 Xem/tải/xóa tài liệu · UC-11 Phân loại · UC-12 Trích xuất văn bản</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="6ab72f78-9858-8240-9a92-8119eb8aed42" dir="ltr"><td id="bis|" class="">FR-04</td><td id="zBrW" class="">AI</td><td id=";MV&lt;" class="">UC-13 Tóm tắt tài liệu (ngắn/vừa/chi tiết)</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="92e72f78-9858-82d3-9624-819985732566" dir="ltr"><td id="bis|" class="">FR-05</td><td id="zBrW" class="">AI</td><td id=";MV&lt;" class="">UC-14 Giải thích khái niệm · UC-15 Hỏi đáp theo tài liệu có trích nguồn · UC-16 Xem lịch sử chat AI · UC-17 Báo câu trả lời sai</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M (15 ở phase 5)</td><td id="=:CQ" class="">1, 5</td></tr><tr id="34272f78-9858-831b-a085-011681add73a" dir="ltr"><td id="bis|" class="">FR-06</td><td id="zBrW" class="">AI</td><td id=";MV&lt;" class="">UC-18 Tạo quiz bằng AI (số lượng, chủ đề, độ khó)</td><td id="Ng`n" class="">Student, Teacher</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="8f772f78-9858-8272-ba66-0100409949a4" dir="ltr"><td id="bis|" class="">FR-07</td><td id="zBrW" class="">Quiz</td><td id=";MV&lt;" class="">UC-19 Làm quiz · UC-20 Nộp và tự chấm · UC-21 Xem giải thích · UC-22 Xem lịch sử kết quả</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="96572f78-9858-8396-92cd-01a43c54a3ca" dir="ltr"><td id="bis|" class="">FR-08</td><td id="zBrW" class="">Flashcard</td><td id=";MV&lt;" class="">UC-23 Tạo flashcard (tay/AI) · UC-24 Ôn tập, đánh giá mức nhớ</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">S</td><td id="=:CQ" class="">5</td></tr><tr id="c0a72f78-9858-832e-83db-81bbcfa630f3" dir="ltr"><td id="bis|" class="">FR-10</td><td id="zBrW" class="">Analytics</td><td id=";MV&lt;" class="">UC-25 Xem thống kê điểm, câu sai thường gặp, chủ đề nên ôn</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1</td></tr><tr id="8c472f78-9858-82c3-a894-811b6531a170" dir="ltr"><td id="bis|" class="">FR-11</td><td id="zBrW" class="">Permission</td><td id=";MV&lt;" class="">UC-26 Phân quyền theo vai trò · UC-27 Quản lý người dùng/vai trò</td><td id="Ng`n" class="">Admin</td><td id="l??T" class="">M</td><td id="=:CQ" class="">2</td></tr><tr id="15572f78-9858-8397-a96d-8106ce351188" dir="ltr"><td id="bis|" class="">FR-12</td><td id="zBrW" class="">Classroom</td><td id=";MV&lt;" class="">UC-28 Tạo lớp · UC-29 Gửi yêu cầu vào lớp bằng mã · UC-30 Duyệt/từ chối · UC-31 Quản lý thành viên · UC-32 Bảng tin, ghim · UC-33 Đăng tài liệu lớp · UC-34 Rời lớp/gỡ thành viên</td><td id="Ng`n" class="">Teacher, Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">2</td></tr><tr id="1f572f78-9858-82aa-bd52-01212c16f387" dir="ltr"><td id="bis|" class="">FR-13</td><td id="zBrW" class="">Assignment</td><td id=";MV&lt;" class="">UC-35 Tạo bài tập · UC-36 Nộp bài · UC-37 Chấm điểm, nhận xét, trả bài · UC-38 Xử lý nộp muộn</td><td id="Ng`n" class="">Teacher, Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">2</td></tr><tr id="7df72f78-9858-8308-9b50-81c27324c4dc" dir="ltr"><td id="bis|" class="">FR-14</td><td id="zBrW" class="">Test</td><td id=";MV&lt;" class="">UC-39 Tạo bài kiểm tra (thời gian, thời lượng, số lần, trộn câu) · UC-40 Làm bài kiểm tra</td><td id="Ng`n" class="">Teacher, Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">2</td></tr><tr id="96472f78-9858-8291-908b-812a0b428ecf" dir="ltr"><td id="bis|" class="">FR-15</td><td id="zBrW" class="">Meeting</td><td id=";MV&lt;" class="">UC-41 Tạo sự kiện học/kiểm tra/họp, lưu link Meet · UC-42 Hủy/đổi sự kiện</td><td id="Ng`n" class="">Teacher</td><td id="l??T" class="">S</td><td id="=:CQ" class="">3</td></tr><tr id="2b972f78-9858-835a-9bf3-818bbeba5574" dir="ltr"><td id="bis|" class="">FR-16</td><td id="zBrW" class="">Timetable</td><td id=";MV&lt;" class="">UC-43 Nhập .ics/CSV · UC-44 Xem lịch ngày/tuần/tháng · UC-45 Cảnh báo trùng lịch · UC-46 Đồng bộ Google Calendar (đọc)</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">S</td><td id="=:CQ" class="">3</td></tr><tr id="afe72f78-9858-82d5-adbc-81338eb5eee7" dir="ltr"><td id="bis|" class="">FR-17</td><td id="zBrW" class="">Plan</td><td id=";MV&lt;" class="">UC-47 Tạo mục tiêu · UC-48 Quản lý task theo ngày · UC-49 AI đề xuất lộ trình · UC-50 Chấp nhận/sửa/bỏ đề xuất</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">S</td><td id="=:CQ" class="">5</td></tr><tr id="b4e72f78-9858-839c-b43d-0120bde4794f" dir="ltr"><td id="bis|" class="">FR-18</td><td id="zBrW" class="">Chat</td><td id=";MV&lt;" class="">UC-51 Chat 1-1 · UC-52 Chat nhóm lớp (tự tạo) · UC-53 Xem lịch sử (phân trang)</td><td id="Ng`n" class="">Student, Teacher</td><td id="l??T" class="">S</td><td id="=:CQ" class="">4</td></tr><tr id="a7972f78-9858-83e0-bade-818f28d5a1f9" dir="ltr"><td id="bis|" class="">FR-19</td><td id="zBrW" class="">Notification</td><td id=";MV&lt;" class="">UC-54 Xem danh sách thông báo · UC-55 Đánh dấu đã đọc · UC-56 Cấu hình loại thông báo</td><td id="Ng`n" class="">Mọi vai trò</td><td id="l??T" class="">S</td><td id="=:CQ" class="">4</td></tr><tr id="90672f78-9858-8223-8ada-01979d428790" dir="ltr"><td id="bis|" class="">FR-20</td><td id="zBrW" class="">Dashboard</td><td id=";MV&lt;" class="">UC-57 Dashboard giảng viên</td><td id="Ng`n" class="">Teacher</td><td id="l??T" class="">M</td><td id="=:CQ" class="">2</td></tr><tr id="35e72f78-9858-82ac-854f-018752c34661" dir="ltr"><td id="bis|" class="">FR-21</td><td id="zBrW" class="">Dashboard</td><td id=";MV&lt;" class="">UC-58 Dashboard sinh viên</td><td id="Ng`n" class="">Student</td><td id="l??T" class="">M</td><td id="=:CQ" class="">1–2</td></tr><tr id="af672f78-9858-83a6-bad1-01b11274fb9e" dir="ltr"><td id="bis|" class="">–</td><td id="zBrW" class="">Admin</td><td id=";MV&lt;" class="">UC-59 Xử lý báo cáo · UC-60 Cấu hình hệ thống và hạn mức AI</td><td id="Ng`n" class="">Admin</td><td id="l??T" class="">C</td><td id="=:CQ" class="">6</td></tr></tbody></table><h3 id="42372f78-9858-80e6-b682-e6a01d2af9e6" class="" dir="auto">3.2 Đặc tả chi tiết các use case trọng tâm</h3><p id="42372f78-9858-8046-93b7-ff9fb7b2d3f7" class="" dir="auto"><strong>UC-13 Tóm tắt tài liệu</strong></p><ul id="42372f78-9858-801d-bd68-eea62ccbb324" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Tiền điều kiện: đã đăng nhập, tài liệu thuộc về người dùng, đã trích xuất văn bản (status = EXTRACTED).</li></ul><ul id="42372f78-9858-8001-9041-f3017d390aa7" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Luồng chính: chọn tài liệu → chọn độ dài → gửi yêu cầu → hệ thống tạo job AI → làm sạch, chia chunk, gọi LLM → kiểm tra đầu ra → lưu → hiển thị.</li></ul><ul id="42372f78-9858-8021-80e2-d10264294385" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Luồng thay thế: tài liệu chưa trích xuất (báo và đề nghị thử lại); tài liệu scan không có chữ (báo chưa hỗ trợ, OCR là tùy chọn); AI lỗi/timeout (retry có kiểm soát, rồi báo lỗi dễ hiểu).</li></ul><ul id="42372f78-9858-80a2-b355-ef7ae4ddbea5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Hậu điều kiện: bản tóm tắt lưu cùng phiên bản prompt, model, tài liệu nguồn, thời điểm tạo.</li></ul><p id="42372f78-9858-809c-93f6-dabd5613c5d2" class="" dir="auto"><strong>UC-15 Hỏi đáp theo tài liệu</strong></p><ul id="42372f78-9858-80cc-be09-e0f8001e6d7c" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Luồng chính: nhập câu hỏi → tìm đoạn liên quan → dựng prompt có ngữ cảnh → AI trả lời → hiển thị câu trả lời, tên tài liệu, trang/đoạn; tách phần <em>trong tài liệu</em> và phần <em>AI giải thích thêm</em>.</li></ul><ul id="42372f78-9858-8081-bddf-e27b92fc56db" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Luồng thay thế: không tìm thấy thông tin → trả lời cố định “Tài liệu hiện tại chưa có thông tin để kết luận” và đề nghị bật chế độ tham khảo kiến thức ngoài.</li></ul><ul id="42372f78-9858-805e-90d6-fad859b93890" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Phase 1 dùng chọn đoạn theo từ khóa/chương; phase 5 dùng embedding + vector store.</li></ul><p id="42372f78-9858-8078-9bcc-f228570a038b" class="" dir="auto"><strong>UC-18 và UC-20 Quiz</strong></p><ul id="42372f78-9858-8022-9e84-f9f420417f13" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Tạo: chọn tài liệu, số câu, chủ đề, độ khó → AI trả JSON → kiểm tra cấu trúc (đúng 1 đáp án với dạng một lựa chọn, đủ phương án, có giải thích) → lưu; JSON sai thì retry tối đa 2 lần.</li></ul><ul id="42372f78-9858-80d4-83c8-fdf8b21c2ca6" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Nộp bài: Backend tự chấm bằng đáp án đã lưu, ghi điểm, thời gian làm, từng câu đúng/sai. Không tin điểm do client gửi.</li></ul><p id="42372f78-9858-8034-a8f7-cf09e9942173" class="" dir="auto"><strong>UC-28 → UC-30 Tham gia lớp</strong></p><ul id="42372f78-9858-8031-84bd-eac5ac1e6839" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Giảng viên tạo lớp, hệ thống sinh mã lớp duy nhất. Sinh viên nhập mã → tạo yêu cầu PENDING → giảng viên duyệt → thành viên được thêm vào lớp và phòng chat lớp → phát thông báo.</li></ul><ul id="42372f78-9858-8058-9a33-fbe9d52c47f2" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Một sinh viên chỉ có một yêu cầu PENDING cho mỗi lớp (unique constraint).</li></ul><p id="42372f78-9858-8080-ba46-c9587fef1f62" class="" dir="auto"><strong>UC-36 Nộp bài</strong></p><ul id="42372f78-9858-8045-a3e7-cbb6c178b92f" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Máy chủ quyết định đúng hạn/muộn bằng giờ máy chủ trong cùng transaction lưu bài. Mặc định một lần nộp (D-02). Dùng idempotency key để gửi lại không tạo bài trùng.</li></ul><ul id="42372f78-9858-8020-b59b-d989f9ab7bb3" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Bài nộp muộn chỉ được chấp nhận khi bài cho phép nộp muộn, gắn nhãn LATE.</li></ul><p id="42372f78-9858-8088-8d95-d5beb8696204" class="" dir="auto"><strong>UC-43 Nhập lịch</strong></p><ul id="42372f78-9858-8083-8a26-d5492d5c7f26" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Tải .ics/CSV → phân tích → hiển thị bản xem trước, đánh dấu sự kiện trùng giờ → người dùng xác nhận → lưu cùng nguồn nhập, múi giờ, thời điểm cập nhật. Lịch lớp do giảng viên tạo là chỉ đọc với sinh viên.</li></ul><h3 id="42372f78-9858-8056-8f3b-e45f19c5aed3" class="" dir="auto">3.3 Quy tắc nghiệp vụ</h3><table id="42372f78-9858-8078-b890-fe0ec5d1880f" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="18a72f78-9858-82ab-8f1c-818625f4e0a0" dir="ltr"><th id="A&gt;Pr" class="simple-table-header-color simple-table-header">Mã</th><th id="n}Rf" class="simple-table-header-color simple-table-header">Quy tắc</th></tr></thead><tbody><tr id="70372f78-9858-8257-b718-014426918b68" dir="ltr"><td id="A&gt;Pr" class="">BR-01</td><td id="n}Rf" class="">Mật khẩu băm (BCrypt/Argon2); khóa tạm tài khoản sau nhiều lần đăng nhập sai</td></tr><tr id="1c972f78-9858-8225-9b04-01b636fd365a" dir="ltr"><td id="A&gt;Pr" class="">BR-02</td><td id="n}Rf" class="">Mọi thao tác kiểm tra quyền ở Backend; ẩn nút ở UI không phải bảo mật</td></tr><tr id="3c072f78-9858-83c4-add0-01c33b629d02" dir="ltr"><td id="A&gt;Pr" class="">BR-03</td><td id="n}Rf" class="">Dữ liệu cá nhân (khóa học, tài liệu, quiz, chat AI) chỉ chủ sở hữu truy cập</td></tr><tr id="dff72f78-9858-82b3-a762-814a4a7bbc2e" dir="ltr"><td id="A&gt;Pr" class="">BR-04</td><td id="n}Rf" class="">Giảng viên chỉ quản lý lớp mình là chủ nhiệm hoặc đồng giảng dạy; sinh viên chỉ xem lớp mình là thành viên</td></tr><tr id="4a472f78-9858-83c2-8cae-018d188e093a" dir="ltr"><td id="A&gt;Pr" class="">BR-05</td><td id="n}Rf" class="">Thành viên rời lớp hoặc bị gỡ thì mất quyền vào phòng chat và tài liệu lớp ngay</td></tr><tr id="bb172f78-9858-83fd-9647-01ba99024e70" dir="ltr"><td id="A&gt;Pr" class="">BR-06</td><td id="n}Rf" class="">Giờ máy chủ quyết định hạn nộp và thời gian làm bài kiểm tra</td></tr><tr id="47372f78-9858-8289-b867-01394aef33ce" dir="ltr"><td id="A&gt;Pr" class="">BR-07</td><td id="n}Rf" class="">Thông báo không gửi trùng: khóa duy nhất theo người nhận + loại sự kiện + đối tượng + mốc nhắc</td></tr><tr id="a9072f78-9858-8375-81fc-818b40ea26b4" dir="ltr"><td id="A&gt;Pr" class="">BR-08</td><td id="n}Rf" class="">AI chỉ nhận đoạn tài liệu cần thiết; không đưa tài liệu lớp này vào câu trả lời cho lớp khác</td></tr><tr id="7be72f78-9858-82ca-9f0e-01f28198edfa" dir="ltr"><td id="A&gt;Pr" class="">BR-09</td><td id="n}Rf" class="">Kết quả AI lưu kèm phiên bản prompt, model, nguồn, thời điểm; quiz/flashcard phải qua kiểm tra cấu trúc</td></tr><tr id="5b372f78-9858-8239-9110-011d0edff2fa" dir="ltr"><td id="A&gt;Pr" class="">BR-10</td><td id="n}Rf" class="">Google Calendar chỉ đọc; task và sự kiện cá nhân trong app không ghi ngược</td></tr><tr id="ea172f78-9858-83ea-a0d6-81ba590c994d" dir="ltr"><td id="A&gt;Pr" class="">BR-11</td><td id="n}Rf" class="">AI đề xuất kế hoạch không tự ghi đè lịch cá nhân; người dùng phải chấp nhận</td></tr><tr id="78972f78-9858-83fd-9650-8191311d8f37" dir="ltr"><td id="A&gt;Pr" class="">BR-12</td><td id="n}Rf" class="">Không giữ transaction mở trong lúc gọi AI hoặc dịch vụ ngoài</td></tr><tr id="67272f78-9858-828a-a18e-81d085ebc657" dir="ltr"><td id="A&gt;Pr" class="">BR-13</td><td id="n}Rf" class="">Giới hạn loại file (PDF, DOCX, TXT), kích thước tối đa, tên file được làm sạch</td></tr></tbody></table><h3 id="42372f78-9858-8059-ad64-cb79ff3fb982" class="" dir="auto">3.4 Yêu cầu phi chức năng</h3><table id="42372f78-9858-8038-bdea-d6df0dd3beb0" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="aeb72f78-9858-82df-b361-0111fd46a597" dir="ltr"><th id="_evU" class="simple-table-header-color simple-table-header">Mã</th><th id="kgnX" class="simple-table-header-color simple-table-header">Yêu cầu</th><th id="JSbM" class="simple-table-header-color simple-table-header">Tiêu chí đo kiểm được</th></tr></thead><tbody><tr id="da972f78-9858-83e8-9a86-019db0485413" dir="ltr"><td id="_evU" class="">NFR-01</td><td id="kgnX" class="">Chạy trên Windows, Linux, macOS</td><td id="JSbM" class="">Đóng gói bằng Electron, cài đặt thử trên cả 3 hệ điều hành</td></tr><tr id="01e72f78-9858-8255-a779-01218513d481" dir="ltr"><td id="_evU" class="">NFR-02</td><td id="kgnX" class="">Hiệu năng</td><td id="JSbM" class="">CRUD thông thường phản hồi dưới 500 ms (p95); tác vụ AI bất đồng bộ, UI không treo; có loading, timeout (đề xuất 60 s), lỗi</td></tr><tr id="da972f78-9858-8373-9ebd-015045d0352d" dir="ltr"><td id="_evU" class="">NFR-03</td><td id="kgnX" class="">Bảo mật</td><td id="JSbM" class="">Khóa AI chỉ ở Backend; JWT ngắn hạn + refresh token; HTTPS; kiểm tra file; refresh token Google được mã hóa</td></tr><tr id="79872f78-9858-8348-8ba4-0137ce579b3c" dir="ltr"><td id="_evU" class="">NFR-04</td><td id="kgnX" class="">Tin cậy</td><td id="JSbM" class="">Retry có giới hạn và backoff; log có cấu trúc, không ghi mật khẩu/token/nội dung riêng tư; dữ liệu bền vững</td></tr><tr id="8a772f78-9858-832b-8ef0-81d94defe92e" dir="ltr"><td id="_evU" class="">NFR-05</td><td id="kgnX" class="">Bảo trì</td><td id="JSbM" class="">Tách Controller–Service–Repository–DTO–Entity; module theo nghiệp vụ; API nhất quán</td></tr><tr id="e1372f78-9858-8340-b984-810a02c5b034" dir="ltr"><td id="_evU" class="">NFR-06</td><td id="kgnX" class="">Dễ dùng</td><td id="JSbM" class="">Tiếng Việt phổ thông, có trạng thái tải/rỗng/lỗi/thành công, hỗ trợ bàn phím, màu không là cách duy nhất báo trạng thái</td></tr><tr id="b0d72f78-9858-83b9-8ecd-81ba85731792" dir="ltr"><td id="_evU" class="">NFR-07</td><td id="kgnX" class="">Hiệu năng truy vấn</td><td id="JSbM" class="">Không N+1; phân trang ở database; kiểm tra số query theo API</td></tr><tr id="64272f78-9858-82c0-969f-819152345f4c" dir="ltr"><td id="_evU" class="">NFR-08</td><td id="kgnX" class="">Đồng thời</td><td id="JSbM" class="">Unique constraint, optimistic locking (version), idempotency key; có test song song</td></tr><tr id="07b72f78-9858-82db-90bc-818eb724aa93" dir="ltr"><td id="_evU" class="">NFR-09</td><td id="kgnX" class="">Real-time</td><td id="JSbM" class="">WebSocket tự kết nối lại, tải bù qua REST, phân trang tin nhắn theo cursor</td></tr><tr id="a3272f78-9858-83bd-a856-015a9cdbad8d" dir="ltr"><td id="_evU" class="">NFR-10</td><td id="kgnX" class="">Quyền riêng tư</td><td id="JSbM" class="">Thông báo rõ dữ liệu gửi AI; chính sách lưu/xóa dữ liệu; Google OAuth tối thiểu quyền, cho phép ngắt kết nối</td></tr></tbody></table><h3 id="42372f78-9858-8091-aa1f-cbdeb15e9d0a" class="" dir="auto">3.5 Yêu cầu chất lượng AI (rút từ mục 15)</h3><ul id="42372f78-9858-804e-af39-f057bf6c7fbd" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Mặc định trả lời bằng tiếng Việt phổ thông, ngắn gọn, giải thích thuật ngữ bằng từ thông dụng.</li></ul><ul id="42372f78-9858-800c-a5d8-ce7e121b994d" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Bám sát tài liệu; không tự tạo số liệu, định nghĩa, trích dẫn, đáp án không có căn cứ.</li></ul><ul id="42372f78-9858-809c-bf73-d192ca8f0399" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Hiển thị tên tài liệu và trang/đoạn; phân biệt nội dung tài liệu với phần AI suy luận.</li></ul><ul id="42372f78-9858-8016-b0bd-ec54689b3dd5" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Có nút “Báo câu trả lời sai/không bám tài liệu”, có bộ câu hỏi kiểm thử mẫu.</li></ul><ul id="42372f78-9858-80a4-be29-f9426aa2b6ed" class="bulleted-list" dir="auto"><li style="list-style-type:disc">Phân tích tiến độ nêu lý do và mức độ chắc chắn, không gán nhãn năng lực người học.</li></ul><h3 id="42372f78-9858-8074-b61b-efccc9b47093" class="" dir="auto">3.6 Phạm vi theo phase và hạng mục cần quyết định lại</h3><ul id="42372f78-9858-80a3-9cfc-c999407dd32b" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Phase 1 (MVP):</strong> FR-01 đến FR-07, FR-10, FR-21 (bản cơ bản), đóng gói Desktop.</li></ul><ul id="42372f78-9858-808a-8e3f-f3f08b052d50" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Phase 2:</strong> FR-11 đến FR-14, FR-20, một luồng end-to-end lớp học → bài tập → nộp/chấm.</li></ul><ul id="42372f78-9858-80ee-976a-d5376e07f88a" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Phase 3:</strong> FR-15, FR-16. <strong>Phase 4:</strong> FR-18, FR-19. <strong>Phase 5:</strong> FR-08, FR-17, RAG. <strong>Phase 6:</strong> tối ưu, kiểm thử tải, CI/CD.</li></ul><ul id="42372f78-9858-80b4-aacb-f75e73eaf750" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Cần quyết định lại:</strong> (1) tạo Meet tự động có cần quyền ghi Google Calendar hay không; (2) quy mô người dùng để chọn có dùng Redis Pub/Sub; (3) OCR cho tài liệu scan; (4) kích thước file tối đa và hạn mức AI mỗi người dùng.</li></ul><h2 id="42372f78-9858-8088-a24e-c4b80b52888c" class="" dir="auto">4. API Contract</h2><h3 id="42372f78-9858-80df-96bf-ee7cc8339268" class="" dir="auto">4.1 Quy ước chung</h3><table id="42372f78-9858-8075-9063-ed2037e6f513" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="c2572f78-9858-8221-8016-818cae71387b" dir="ltr"><th id="YH}F" class="simple-table-header-color simple-table-header">Hạng mục</th><th id="euI&gt;" class="simple-table-header-color simple-table-header">Quy ước</th></tr></thead><tbody><tr id="6ae72f78-9858-836b-88bb-819756a79be5" dir="ltr"><td id="YH}F" class="">Base URL</td><td id="euI&gt;" class=""><code>https://{host}/api/v1</code>; WebSocket: <code>wss://{host}/ws</code> (STOMP)</td></tr><tr id="6d372f78-9858-82aa-b8b1-81a53b2c615f" dir="ltr"><td id="YH}F" class="">Định dạng</td><td id="euI&gt;" class="">JSON UTF-8; thời gian ISO-8601 UTC (ví dụ <code>2026-11-24T08:30:00Z</code>); ID dạng số 64-bit hoặc UUID nhất quán toàn hệ thống</td></tr><tr id="6fb72f78-9858-8272-9b58-01331f25bee3" dir="ltr"><td id="YH}F" class="">Xác thực</td><td id="euI&gt;" class="">Header <code>Authorization: Bearer &lt;accessToken&gt;</code>; access token sống ngắn (15 phút), refresh token xoay vòng (7 ngày)</td></tr><tr id="f3072f78-9858-83db-83d5-81841dd593ae" dir="ltr"><td id="YH}F" class="">Phân trang</td><td id="euI&gt;" class="">Danh sách: <code>?page=0&amp;size=20&amp;sort=createdAt,desc</code>. Tin nhắn/thông báo: <code>?cursor=&lt;id&gt;&amp;limit=30</code></td></tr><tr id="03c72f78-9858-82ba-92cc-011ba6053dde" dir="ltr"><td id="YH}F" class="">Idempotency</td><td id="euI&gt;" class="">Header <code>Idempotency-Key: &lt;uuid&gt;</code> cho nộp bài, nộp quiz, tạo sự kiện, gửi tin nhắn</td></tr><tr id="37072f78-9858-8397-a685-817034a7bde9" dir="ltr"><td id="YH}F" class="">Khóa đồng thời</td><td id="euI&gt;" class="">Cập nhật dùng <code>version</code> trong body hoặc header <code>If-Match</code>; sai version trả 409</td></tr><tr id="de572f78-9858-8353-b4e7-817bc9342c64" dir="ltr"><td id="YH}F" class="">Tác vụ AI</td><td id="euI&gt;" class="">Trả <code>202 Accepted</code> kèm <code>jobId</code>; client hỏi <code>GET /ai/jobs/{jobId}</code> hoặc nhận sự kiện WebSocket</td></tr><tr id="c1d72f78-9858-83ff-8753-81052fb2c48c" dir="ltr"><td id="YH}F" class="">Giới hạn tần suất</td><td id="euI&gt;" class="">Trả 429 kèm <code>Retry-After</code></td></tr><tr id="a5972f78-9858-823b-81c9-817d18fc1d37" dir="ltr"><td id="YH}F" class="">Upload</td><td id="euI&gt;" class=""><code>multipart/form-data</code>, kiểm tra loại và kích thước ở Backend</td></tr></tbody></table><h3 id="42372f78-9858-803c-adf3-f90607acbb2d" class="" dir="auto">4.2 Cấu trúc phản hồi</h3><p id="42372f78-9858-80b5-810f-cc23b3dacfac" class="" dir="auto">Thành công:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" integrity="sha512-QXFMVAusM85vUYDaNgcYeU3rzSlc+bTV4JvkfJhjxSHlQEo+ig53BtnGkvFTiNJh8D+wv6uWAQ2vJaVmxe8d3w==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><pre id="42372f78-9858-8035-86b7-c80abcf044bf" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: { },
+  &quot;meta&quot;: { &quot;page&quot;: 0, &quot;size&quot;: 20, &quot;totalElements&quot;: 135, &quot;nextCursor&quot;: null },
+  &quot;traceId&quot;: &quot;b7c1...&quot;
+}</code></pre><p id="42372f78-9858-80b9-94da-c6ae04f37cfc" class="" dir="auto">Lỗi (do global exception handler chuẩn hóa; không lộ stack trace, tên bảng, mã nội bộ):</p><pre id="42372f78-9858-8082-acae-d3974fd8bf72" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">{
+  &quot;success&quot;: false,
+  &quot;error&quot;: {
+    &quot;code&quot;: &quot;ASSIGNMENT_ALREADY_SUBMITTED&quot;,
+    &quot;message&quot;: &quot;Bạn đã nộp bài này rồi.&quot;,
+    &quot;fields&quot;: [ { &quot;field&quot;: &quot;answer&quot;, &quot;message&quot;: &quot;Không được để trống&quot; } ]
+  },
+  &quot;traceId&quot;: &quot;b7c1...&quot;
+}</code></pre><h3 id="42372f78-9858-8006-99ea-caca6b2423cd" class="" dir="auto">4.3 Mã lỗi HTTP và mã nghiệp vụ</h3><table id="42372f78-9858-80d5-859c-d248954b3644" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="f1772f78-9858-8374-a50e-81e8f0d28f1f" dir="ltr"><th id="]O&lt;=" class="simple-table-header-color simple-table-header">HTTP</th><th id="?b\N" class="simple-table-header-color simple-table-header">Ý nghĩa</th><th id="l`}f" class="simple-table-header-color simple-table-header">Ví dụ mã nghiệp vụ</th></tr></thead><tbody><tr id="f2a72f78-9858-82e8-9bfa-013b37d07b96" dir="ltr"><td id="]O&lt;=" class="">400</td><td id="?b\N" class="">Dữ liệu không hợp lệ</td><td id="l`}f" class=""><code>VALIDATION_ERROR</code>, <code>FILE_TYPE_NOT_ALLOWED</code>, <code>FILE_TOO_LARGE</code></td></tr><tr id="49e72f78-9858-83ca-9344-0168bfd1b5a1" dir="ltr"><td id="]O&lt;=" class="">401</td><td id="?b\N" class="">Chưa đăng nhập/token hết hạn</td><td id="l`}f" class=""><code>UNAUTHENTICATED</code>, <code>TOKEN_EXPIRED</code>, <code>BAD_CREDENTIALS</code></td></tr><tr id="8bf72f78-9858-83bf-ad71-01a27d1e62cd" dir="ltr"><td id="]O&lt;=" class="">403</td><td id="?b\N" class="">Không đủ quyền</td><td id="l`}f" class=""><code>FORBIDDEN</code>, <code>NOT_CLASS_MEMBER</code>, <code>ACCOUNT_LOCKED</code></td></tr><tr id="ca972f78-9858-836b-9675-8175e0432a6f" dir="ltr"><td id="]O&lt;=" class="">404</td><td id="?b\N" class="">Không thấy tài nguyên</td><td id="l`}f" class=""><code>NOT_FOUND</code>, <code>CLASS_CODE_INVALID</code></td></tr><tr id="81872f78-9858-82cc-ad18-012e717fc5bf" dir="ltr"><td id="]O&lt;=" class="">409</td><td id="?b\N" class="">Xung đột</td><td id="l`}f" class=""><code>EMAIL_EXISTS</code>, <code>ASSIGNMENT_ALREADY_SUBMITTED</code>, <code>VERSION_CONFLICT</code>, <code>JOIN_REQUEST_EXISTS</code>, <code>SCHEDULE_CONFLICT</code></td></tr><tr id="e4a72f78-9858-83c1-8ba5-0194ec63b6cb" dir="ltr"><td id="]O&lt;=" class="">422</td><td id="?b\N" class="">Không xử lý được nghiệp vụ</td><td id="l`}f" class=""><code>ASSIGNMENT_CLOSED</code>, <code>TEXT_NOT_EXTRACTED</code>, <code>AI_OUTPUT_INVALID</code></td></tr><tr id="79f72f78-9858-8238-b51c-81ff13677fb1" dir="ltr"><td id="]O&lt;=" class="">429</td><td id="?b\N" class="">Vượt giới hạn</td><td id="l`}f" class=""><code>RATE_LIMITED</code>, <code>AI_QUOTA_EXCEEDED</code></td></tr><tr id="fed72f78-9858-8361-9b8c-01c6063db635" dir="ltr"><td id="]O&lt;=" class="">502/504</td><td id="?b\N" class="">AI hoặc dịch vụ ngoài lỗi/timeout</td><td id="l`}f" class=""><code>AI_PROVIDER_ERROR</code>, <code>AI_TIMEOUT</code>, <code>GOOGLE_API_ERROR</code></td></tr></tbody></table><h3 id="42372f78-9858-80e6-b691-cf316e467014" class="" dir="auto">4.4 Hợp đồng mẫu cho các API chính</h3><p id="42372f78-9858-800d-83fc-fae1b400917e" class="" dir="auto"><strong>Đăng nhập</strong> <code>POST /auth/login</code></p><pre id="42372f78-9858-804b-a6bd-eaaaf179d4d4" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Request
+{ &quot;email&quot;: &quot;sv01@actvn.edu.vn&quot;, &quot;password&quot;: &quot;********&quot; }
+// Response 200
+{ &quot;success&quot;: true, &quot;data&quot;: {
+  &quot;accessToken&quot;: &quot;eyJ...&quot;, &quot;refreshToken&quot;: &quot;d41f...&quot;, &quot;expiresIn&quot;: 900,
+  &quot;user&quot;: { &quot;id&quot;: 12, &quot;fullName&quot;: &quot;Nguyễn Văn A&quot;, &quot;role&quot;: &quot;STUDENT&quot; } } }</code></pre><p id="42372f78-9858-802d-b7de-d8f9f7d68784" class="" dir="auto"><strong>Tải tài liệu</strong> <code>POST /courses/{courseId}/materials</code> (multipart: <code>file</code>, <code>topicId</code>, <code>category</code>)</p><pre id="42372f78-9858-80a4-a6ea-cfb10bde4837" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Response 201
+{ &quot;success&quot;: true, &quot;data&quot;: { &quot;id&quot;: 301, &quot;fileName&quot;: &quot;Mang-may-tinh.pdf&quot;,
+  &quot;sizeBytes&quot;: 2481920, &quot;status&quot;: &quot;EXTRACTING&quot;, &quot;pageCount&quot;: null } }</code></pre><p id="42372f78-9858-809e-88d7-c0de57cb4745" class="" dir="auto">Trạng thái tài liệu: <code>UPLOADED → EXTRACTING → EXTRACTED | FAILED</code>.</p><p id="42372f78-9858-8065-99ff-c685ad5dd818" class="" dir="auto"><strong>Tóm tắt</strong> <code>POST /ai/summaries</code></p><pre id="42372f78-9858-802c-9ab2-ddb28543f4e7" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Request
+{ &quot;materialId&quot;: 301, &quot;length&quot;: &quot;MEDIUM&quot; }   // SHORT | MEDIUM | DETAILED
+// Response 202
+{ &quot;success&quot;: true, &quot;data&quot;: { &quot;jobId&quot;: &quot;j-8f21&quot;, &quot;status&quot;: &quot;PENDING&quot; } }
+// GET /ai/jobs/j-8f21 khi xong
+{ &quot;success&quot;: true, &quot;data&quot;: { &quot;jobId&quot;: &quot;j-8f21&quot;, &quot;status&quot;: &quot;SUCCEEDED&quot;,
+  &quot;resultType&quot;: &quot;SUMMARY&quot;, &quot;resultId&quot;: 77 } }</code></pre><p id="42372f78-9858-8043-b170-e852c2c06b0e" class="" dir="auto"><strong>Hỏi đáp theo tài liệu</strong> <code>POST /ai/chats/{chatId}/messages</code></p><pre id="42372f78-9858-8038-99eb-f4c4f0dac730" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Request
+{ &quot;content&quot;: &quot;TCP khác UDP ở điểm nào?&quot;, &quot;materialIds&quot;: [301], &quot;allowExternalKnowledge&quot;: false }
+// Response 200
+{ &quot;success&quot;: true, &quot;data&quot;: {
+  &quot;messageId&quot;: 5521,
+  &quot;answer&quot;: &quot;…&quot;,
+  &quot;grounded&quot;: true,
+  &quot;sources&quot;: [ { &quot;materialId&quot;: 301, &quot;fileName&quot;: &quot;Mang-may-tinh.pdf&quot;, &quot;page&quot;: 14, &quot;chunkId&quot;: 880 } ],
+  &quot;aiAddedNote&quot;: &quot;Phần giải thích thêm của AI: …&quot; } }</code></pre><p id="42372f78-9858-80f9-a47b-c7ec750f8dd3" class="" dir="auto">Nếu không có căn cứ: <code>grounded=false</code>, <code>answer=&quot;Tài liệu hiện tại chưa có thông tin để kết luận&quot;</code>, <code>sources=[]</code>.</p><p id="42372f78-9858-8005-b6ab-fca44a10634e" class="" dir="auto"><strong>Sinh quiz</strong> <code>POST /ai/quizzes</code></p><pre id="42372f78-9858-800a-b8b4-cec3886ae94b" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">{ &quot;materialIds&quot;: [301], &quot;questionCount&quot;: 10, &quot;topic&quot;: &quot;Tầng giao vận&quot;, &quot;difficulty&quot;: &quot;MEDIUM&quot;, &quot;type&quot;: &quot;SINGLE_CHOICE&quot; }</code></pre><p id="42372f78-9858-805a-9bf6-c6b3108654ea" class="" dir="auto"><strong>Nộp quiz</strong> <code>POST /quizzes/{quizId}/attempts/{attemptId}/submit</code> (header <code>Idempotency-Key</code>)</p><pre id="42372f78-9858-80e8-9983-f6e5e8ae0495" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Request
+{ &quot;answers&quot;: [ { &quot;questionId&quot;: 1, &quot;selectedOptionIds&quot;: [3] } ], &quot;durationSeconds&quot;: 540 }
+// Response 200
+{ &quot;success&quot;: true, &quot;data&quot;: { &quot;score&quot;: 8.0, &quot;maxScore&quot;: 10, &quot;correctCount&quot;: 8,
+  &quot;details&quot;: [ { &quot;questionId&quot;: 1, &quot;correct&quot;: true, &quot;explanation&quot;: &quot;…&quot; } ] } }</code></pre><p id="42372f78-9858-807f-8f1c-fa315a96a5ae" class="" dir="auto"><strong>Nộp bài tập</strong> <code>POST /assignments/{id}/submissions</code> (multipart hoặc JSON, header <code>Idempotency-Key</code>)</p><pre id="42372f78-9858-8039-97d9-c5a2b504b160" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">// Response 201
+{ &quot;success&quot;: true, &quot;data&quot;: { &quot;submissionId&quot;: 990, &quot;status&quot;: &quot;SUBMITTED&quot;,
+  &quot;late&quot;: false, &quot;submittedAt&quot;: &quot;2026-11-24T08:30:00Z&quot;, &quot;serverTimeDecided&quot;: true } }</code></pre><p id="42372f78-9858-80e0-93d8-fe2e9f69e97b" class="" dir="auto"><strong>Gửi tin nhắn</strong> qua STOMP: <code>SEND /app/conversations/{id}/messages</code></p><pre id="42372f78-9858-80a5-b360-f081742b5414" class="code code-wrap" data-notion-code-syntax="json"><code class="language-json" style="white-space:pre-wrap;word-break:break-all">{ &quot;clientMessageId&quot;: &quot;uuid&quot;, &quot;content&quot;: &quot;Chào cả lớp&quot; }</code></pre><p id="42372f78-9858-8033-b77e-c1068bbd38dd" class="" dir="auto">Kênh nhận: <code>SUBSCRIBE /user/queue/notifications</code>, <code>/topic/conversations/{id}</code>, <code>/user/queue/ai-jobs</code>.</p><h2 id="42372f78-9858-8029-a1a8-feae83299a87" class="" dir="auto">5. Danh sách API Endpoints</h2><p id="42372f78-9858-8054-ac65-d88c9cd9a5f8" class="" dir="auto">Vai trò: <strong>S</strong> Student, <strong>T</strong> Teacher, <strong>A</strong> Admin, <strong>All</strong> mọi người dùng đã đăng nhập, <strong>Pub</strong> công khai. Chủ sở hữu nghĩa là chỉ người tạo truy cập.</p><h3 id="42372f78-9858-80fe-bf3b-cee9881849af" class="" dir="auto">5.1 Auth và người dùng (FR-01, FR-11)</h3><table id="42372f78-9858-8054-a7df-cfef1987619f" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="f4b72f78-9858-83cd-9481-0143ec66436c" dir="ltr"><th id="[:s{" class="simple-table-header-color simple-table-header">Method</th><th id=":lFR" class="simple-table-header-color simple-table-header">Endpoint</th><th id="dee_" class="simple-table-header-color simple-table-header">Vai trò</th><th id="uvA_" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="9cc72f78-9858-8322-a9e6-81c3317bedf0" dir="ltr"><td id="[:s{" class="">POST</td><td id=":lFR" class=""><code>/auth/register</code></td><td id="dee_" class="">Pub</td><td id="uvA_" class="">Đăng ký</td></tr><tr id="dd172f78-9858-8271-93c1-011a1f61f282" dir="ltr"><td id="[:s{" class="">POST</td><td id=":lFR" class=""><code>/auth/login</code></td><td id="dee_" class="">Pub</td><td id="uvA_" class="">Đăng nhập</td></tr><tr id="23772f78-9858-8296-8ada-0108c7c07e00" dir="ltr"><td id="[:s{" class="">POST</td><td id=":lFR" class=""><code>/auth/refresh</code></td><td id="dee_" class="">Pub</td><td id="uvA_" class="">Làm mới token</td></tr><tr id="6e372f78-9858-82d2-9163-81b0ed069b4b" dir="ltr"><td id="[:s{" class="">POST</td><td id=":lFR" class=""><code>/auth/logout</code></td><td id="dee_" class="">All</td><td id="uvA_" class="">Đăng xuất, thu hồi refresh token</td></tr><tr id="93b72f78-9858-829b-a338-01186c232880" dir="ltr"><td id="[:s{" class="">GET</td><td id=":lFR" class=""><code>/users/me</code></td><td id="dee_" class="">All</td><td id="uvA_" class="">Xem hồ sơ</td></tr><tr id="f4d72f78-9858-8356-966b-8188ed8d7395" dir="ltr"><td id="[:s{" class="">PUT</td><td id=":lFR" class=""><code>/users/me</code></td><td id="dee_" class="">All</td><td id="uvA_" class="">Sửa hồ sơ</td></tr><tr id="4d172f78-9858-8254-996f-01b89988a400" dir="ltr"><td id="[:s{" class="">PUT</td><td id=":lFR" class=""><code>/users/me/password</code></td><td id="dee_" class="">All</td><td id="uvA_" class="">Đổi mật khẩu</td></tr><tr id="fb072f78-9858-832d-a074-01db81cbb1fd" dir="ltr"><td id="[:s{" class="">GET</td><td id=":lFR" class=""><code>/users</code></td><td id="dee_" class="">A</td><td id="uvA_" class="">Danh sách người dùng (lọc, phân trang)</td></tr><tr id="1be72f78-9858-8381-b9a8-81692bc34a3c" dir="ltr"><td id="[:s{" class="">PUT</td><td id=":lFR" class=""><code>/users/{id}/role</code></td><td id="dee_" class="">A</td><td id="uvA_" class="">Đổi vai trò</td></tr><tr id="f9772f78-9858-8341-ab50-018cdb026815" dir="ltr"><td id="[:s{" class="">PUT</td><td id=":lFR" class=""><code>/users/{id}/status</code></td><td id="dee_" class="">A</td><td id="uvA_" class="">Khóa/mở tài khoản</td></tr></tbody></table><h3 id="42372f78-9858-8048-b324-cc20bbfc381b" class="" dir="auto">5.2 Khóa học, chương, chủ đề (FR-02)</h3><table id="42372f78-9858-8066-9107-dad7edf375eb" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="05672f78-9858-8250-a323-815c36d04491" dir="ltr"><th id="KuY?" class="simple-table-header-color simple-table-header">Method</th><th id="fdv:" class="simple-table-header-color simple-table-header">Endpoint</th><th id="d;n]" class="simple-table-header-color simple-table-header">Vai trò</th><th id="nsH;" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="4df72f78-9858-8393-afa5-012caa68751d" dir="ltr"><td id="KuY?" class="">GET, POST</td><td id="fdv:" class=""><code>/courses</code></td><td id="d;n]" class="">S</td><td id="nsH;" class="">Danh sách, tạo khóa học</td></tr><tr id="87172f78-9858-82ae-b449-01af3eee215c" dir="ltr"><td id="KuY?" class="">GET, PUT, DELETE</td><td id="fdv:" class=""><code>/courses/{courseId}</code></td><td id="d;n]" class="">S (chủ sở hữu)</td><td id="nsH;" class="">Chi tiết, sửa, xóa</td></tr><tr id="7a272f78-9858-8387-91bc-813e0fee93ef" dir="ltr"><td id="KuY?" class="">GET, POST</td><td id="fdv:" class=""><code>/courses/{courseId}/chapters</code></td><td id="d;n]" class="">S</td><td id="nsH;" class="">Danh sách, tạo chương</td></tr><tr id="a9c72f78-9858-8210-8fe0-012231cf7df5" dir="ltr"><td id="KuY?" class="">PUT, DELETE</td><td id="fdv:" class=""><code>/chapters/{chapterId}</code></td><td id="d;n]" class="">S</td><td id="nsH;" class="">Sửa, xóa chương</td></tr><tr id="90272f78-9858-82b4-8a93-018e33ac1d5b" dir="ltr"><td id="KuY?" class="">GET, POST</td><td id="fdv:" class=""><code>/chapters/{chapterId}/topics</code></td><td id="d;n]" class="">S</td><td id="nsH;" class="">Danh sách, tạo chủ đề</td></tr><tr id="0a672f78-9858-8284-8f8d-81e636c463db" dir="ltr"><td id="KuY?" class="">PUT, DELETE</td><td id="fdv:" class=""><code>/topics/{topicId}</code></td><td id="d;n]" class="">S</td><td id="nsH;" class="">Sửa, xóa chủ đề</td></tr></tbody></table><h3 id="42372f78-9858-8054-8902-c1182aaed91a" class="" dir="auto">5.3 Tài liệu (FR-03)</h3><table id="42372f78-9858-80c1-a910-e2ad460bc1d6" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="e3a72f78-9858-8288-93ee-01f3f071dcfe" dir="ltr"><th id="w{X:" class="simple-table-header-color simple-table-header">Method</th><th id="{{a`" class="simple-table-header-color simple-table-header">Endpoint</th><th id="PJgB" class="simple-table-header-color simple-table-header">Vai trò</th><th id="F[uK" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="f9b72f78-9858-8215-885f-8185885a2364" dir="ltr"><td id="w{X:" class="">POST</td><td id="{{a`" class=""><code>/courses/{courseId}/materials</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Tải lên PDF/DOCX/TXT</td></tr><tr id="4ff72f78-9858-83ab-bd5f-01d72bd4d586" dir="ltr"><td id="w{X:" class="">GET</td><td id="{{a`" class=""><code>/courses/{courseId}/materials</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Danh sách (lọc theo chủ đề, phân loại)</td></tr><tr id="20872f78-9858-82dd-896f-81b4e7c997f4" dir="ltr"><td id="w{X:" class="">GET</td><td id="{{a`" class=""><code>/materials/{id}</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Thông tin, trạng thái trích xuất</td></tr><tr id="9bb72f78-9858-8275-ae0f-0139a236cf1d" dir="ltr"><td id="w{X:" class="">GET</td><td id="{{a`" class=""><code>/materials/{id}/content</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Xem văn bản đã trích xuất (theo trang)</td></tr><tr id="8f872f78-9858-83da-a347-01c2ed026c60" dir="ltr"><td id="w{X:" class="">GET</td><td id="{{a`" class=""><code>/materials/{id}/download</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Tải file gốc (có kiểm tra quyền)</td></tr><tr id="23f72f78-9858-827e-aff2-81080a76690d" dir="ltr"><td id="w{X:" class="">PUT</td><td id="{{a`" class=""><code>/materials/{id}</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Đổi tên, phân loại, chuyển chủ đề</td></tr><tr id="29e72f78-9858-824c-ae54-81daac8e8dee" dir="ltr"><td id="w{X:" class="">DELETE</td><td id="{{a`" class=""><code>/materials/{id}</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Xóa tài liệu</td></tr><tr id="70072f78-9858-821b-95a2-81f25d5e730c" dir="ltr"><td id="w{X:" class="">POST</td><td id="{{a`" class=""><code>/materials/{id}/reextract</code></td><td id="PJgB" class="">S</td><td id="F[uK" class="">Trích xuất lại</td></tr></tbody></table><h3 id="42372f78-9858-8053-8005-de97901d2ecf" class="" dir="auto">5.4 AI học tập (FR-04, 05, 06, 08, 17)</h3><table id="42372f78-9858-80f8-a27c-fb222c221123" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="2b572f78-9858-8217-9b15-017f4a16d4a3" dir="ltr"><th id=";TJ@" class="simple-table-header-color simple-table-header">Method</th><th id="DOJQ" class="simple-table-header-color simple-table-header">Endpoint</th><th id="xRq~" class="simple-table-header-color simple-table-header">Vai trò</th><th id="g}\H" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="29672f78-9858-8380-b522-810d1c36c0ad" dir="ltr"><td id=";TJ@" class="">GET</td><td id="DOJQ" class=""><code>/ai/jobs/{jobId}</code></td><td id="xRq~" class="">Chủ job</td><td id="g}\H" class="">Trạng thái, kết quả, lỗi của job</td></tr><tr id="13c72f78-9858-827a-982d-0148e0d8e1e8" dir="ltr"><td id=";TJ@" class="">DELETE</td><td id="DOJQ" class=""><code>/ai/jobs/{jobId}</code></td><td id="xRq~" class="">Chủ job</td><td id="g}\H" class="">Hủy job đang chạy</td></tr><tr id="6ad72f78-9858-83e2-a41e-8191056c5066" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/summaries</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Tạo tóm tắt (async)</td></tr><tr id="2fe72f78-9858-83f6-aff7-81e5e2cdfbba" dir="ltr"><td id=";TJ@" class="">GET</td><td id="DOJQ" class=""><code>/materials/{id}/summaries</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Các bản tóm tắt của tài liệu</td></tr><tr id="f7672f78-9858-8255-b162-01ff4ea6dbca" dir="ltr"><td id=";TJ@" class="">GET, DELETE</td><td id="DOJQ" class=""><code>/ai/summaries/{id}</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Xem, xóa bản tóm tắt</td></tr><tr id="bdf72f78-9858-82ac-b626-01a543b477bb" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/explanations</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Giải thích khái niệm</td></tr><tr id="7a072f78-9858-83cb-8e21-0141a4bd1bb5" dir="ltr"><td id=";TJ@" class="">POST, GET</td><td id="DOJQ" class=""><code>/ai/chats</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Tạo, liệt kê phiên chat AI</td></tr><tr id="a7372f78-9858-831c-8194-8130741f9a28" dir="ltr"><td id=";TJ@" class="">GET, DELETE</td><td id="DOJQ" class=""><code>/ai/chats/{chatId}</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Xem lịch sử, xóa phiên</td></tr><tr id="0e772f78-9858-8209-b13c-017fc34f282b" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/chats/{chatId}/messages</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Gửi câu hỏi, nhận trả lời kèm nguồn</td></tr><tr id="2f872f78-9858-8239-831a-81aa56e4f709" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/feedback</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Báo câu trả lời sai/không bám tài liệu</td></tr><tr id="22f72f78-9858-820c-b032-814c8f1f253c" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/quizzes</code></td><td id="xRq~" class="">S, T</td><td id="g}\H" class="">Sinh quiz (async)</td></tr><tr id="89b72f78-9858-82b7-be91-81ee850a5a9c" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/flashcards</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">Sinh flashcard (phase 5)</td></tr><tr id="d0d72f78-9858-82e6-a345-0194315ad676" dir="ltr"><td id=";TJ@" class="">POST</td><td id="DOJQ" class=""><code>/ai/study-plans</code></td><td id="xRq~" class="">S</td><td id="g}\H" class="">AI đề xuất lộ trình (phase 5)</td></tr></tbody></table><h3 id="42372f78-9858-8078-be55-e7dfb4cd87dd" class="" dir="auto">5.5 Quiz và đánh giá (FR-07), Flashcard (FR-08)</h3><table id="42372f78-9858-80ff-a82b-c90b4c39ef56" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="aeb72f78-9858-8355-b36b-01db93b14b28" dir="ltr"><th id="ZyKH" class="simple-table-header-color simple-table-header">Method</th><th id=";xBA" class="simple-table-header-color simple-table-header">Endpoint</th><th id="nJZF" class="simple-table-header-color simple-table-header">Vai trò</th><th id="cRHF" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="19e72f78-9858-8285-96d5-81ca8f163447" dir="ltr"><td id="ZyKH" class="">GET</td><td id=";xBA" class=""><code>/quizzes</code></td><td id="nJZF" class="">S, T</td><td id="cRHF" class="">Danh sách quiz của tôi</td></tr><tr id="2dd72f78-9858-8280-869f-01d611c519de" dir="ltr"><td id="ZyKH" class="">GET, PUT, DELETE</td><td id=";xBA" class=""><code>/quizzes/{id}</code></td><td id="nJZF" class="">Chủ sở hữu</td><td id="cRHF" class="">Xem, sửa câu hỏi, xóa</td></tr><tr id="8c672f78-9858-8204-b8d6-015b7b5f4720" dir="ltr"><td id="ZyKH" class="">POST</td><td id=";xBA" class=""><code>/quizzes/{id}/attempts</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Bắt đầu lượt làm</td></tr><tr id="82272f78-9858-8208-a322-81a3c631ac33" dir="ltr"><td id="ZyKH" class="">PUT</td><td id=";xBA" class=""><code>/quizzes/{id}/attempts/{attemptId}</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Lưu nháp đáp án</td></tr><tr id="a4372f78-9858-8203-9551-81748aae307a" dir="ltr"><td id="ZyKH" class="">POST</td><td id=";xBA" class=""><code>/quizzes/{id}/attempts/{attemptId}/submit</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Nộp và chấm</td></tr><tr id="8f472f78-9858-826e-8853-81dd9323cff1" dir="ltr"><td id="ZyKH" class="">GET</td><td id=";xBA" class=""><code>/quizzes/{id}/attempts</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Lịch sử các lượt làm</td></tr><tr id="9aa72f78-9858-82fd-b1d0-01050f03bbc0" dir="ltr"><td id="ZyKH" class="">GET</td><td id=";xBA" class=""><code>/attempts/{attemptId}</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Chi tiết kết quả, giải thích</td></tr><tr id="9bd72f78-9858-82f3-8e5c-818ec119e72a" dir="ltr"><td id="ZyKH" class="">GET, POST</td><td id=";xBA" class=""><code>/flashcard-decks</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Bộ thẻ: danh sách, tạo</td></tr><tr id="80772f78-9858-8317-9bcb-01be1d1e197f" dir="ltr"><td id="ZyKH" class="">GET, PUT, DELETE</td><td id=";xBA" class=""><code>/flashcard-decks/{id}</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Xem, sửa, xóa bộ thẻ</td></tr><tr id="cc172f78-9858-83a4-968e-8169c45f47d2" dir="ltr"><td id="ZyKH" class="">POST</td><td id=";xBA" class=""><code>/flashcard-decks/{id}/cards</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Thêm thẻ thủ công</td></tr><tr id="50272f78-9858-83b5-9974-818b74881930" dir="ltr"><td id="ZyKH" class="">GET</td><td id=";xBA" class=""><code>/flashcard-decks/{id}/review</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Lấy thẻ cần ôn hôm nay</td></tr><tr id="18072f78-9858-8382-a96d-015848b3a248" dir="ltr"><td id="ZyKH" class="">POST</td><td id=";xBA" class=""><code>/flashcards/{id}/reviews</code></td><td id="nJZF" class="">S</td><td id="cRHF" class="">Ghi mức nhớ (QUÊN/KHÓ/TẠM/DỄ)</td></tr></tbody></table><h3 id="42372f78-9858-8033-840d-f9a01b0452ef" class="" dir="auto">5.6 Thống kê học tập (FR-10, FR-21)</h3><table id="42372f78-9858-8032-811f-d9c7371399b0" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="47f72f78-9858-8339-ba43-01de770a3df3" dir="ltr"><th id="HlD]" class="simple-table-header-color simple-table-header">Method</th><th id="=EaP" class="simple-table-header-color simple-table-header">Endpoint</th><th id="&gt;&lt;qa" class="simple-table-header-color simple-table-header">Vai trò</th><th id="niXF" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="38172f78-9858-8236-9523-013722be0439" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/analytics/overview</code></td><td id="&gt;&lt;qa" class="">S</td><td id="niXF" class="">Điểm trung bình, số lượt làm, tiến độ</td></tr><tr id="31a72f78-9858-8286-88c9-8170db9bf324" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/analytics/score-trend?from=&amp;to=</code></td><td id="&gt;&lt;qa" class="">S</td><td id="niXF" class="">Điểm theo thời gian</td></tr><tr id="4a272f78-9858-8237-8bdb-01b50a33361f" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/analytics/frequent-mistakes</code></td><td id="&gt;&lt;qa" class="">S</td><td id="niXF" class="">Câu sai thường gặp</td></tr><tr id="1a072f78-9858-83bd-900a-81fd8042703e" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/analytics/review-topics</code></td><td id="&gt;&lt;qa" class="">S</td><td id="niXF" class="">Chủ đề nên ôn, kèm lý do và mức chắc chắn</td></tr><tr id="a8d72f78-9858-820e-af97-01bad84828d5" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/dashboard/student</code></td><td id="&gt;&lt;qa" class="">S</td><td id="niXF" class="">Lịch sắp tới, bài cần nộp, thông báo chưa đọc, mục tiêu</td></tr><tr id="13272f78-9858-821a-ab48-01aae47894ce" dir="ltr"><td id="HlD]" class="">GET</td><td id="=EaP" class=""><code>/dashboard/teacher</code></td><td id="&gt;&lt;qa" class="">T</td><td id="niXF" class="">Lớp, bài sắp đến hạn, tình hình nộp, kết quả kiểm tra</td></tr></tbody></table><h3 id="42372f78-9858-8089-859e-e425f950f835" class="" dir="auto">5.7 Lớp học (FR-12)</h3><table id="42372f78-9858-8047-9803-e3d380aa031d" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="1d272f78-9858-8339-b88d-81054191e4eb" dir="ltr"><th id="NxMq" class="simple-table-header-color simple-table-header">Method</th><th id="BUdG" class="simple-table-header-color simple-table-header">Endpoint</th><th id="rZMM" class="simple-table-header-color simple-table-header">Vai trò</th><th id="AX?R" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="b9372f78-9858-83f8-9ff7-81343bc03d61" dir="ltr"><td id="NxMq" class="">POST</td><td id="BUdG" class=""><code>/classes</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Tạo lớp (sinh mã lớp)</td></tr><tr id="abb72f78-9858-82d2-9278-01ad62106b4d" dir="ltr"><td id="NxMq" class="">GET</td><td id="BUdG" class=""><code>/classes</code></td><td id="rZMM" class="">S, T</td><td id="AX?R" class="">Lớp của tôi</td></tr><tr id="54a72f78-9858-8200-bf50-819d2c57e4b6" dir="ltr"><td id="NxMq" class="">GET, PUT</td><td id="BUdG" class=""><code>/classes/{id}</code></td><td id="rZMM" class="">Thành viên / T</td><td id="AX?R" class="">Xem, sửa lớp</td></tr><tr id="0a972f78-9858-8258-9fba-8105453abc82" dir="ltr"><td id="NxMq" class="">PUT</td><td id="BUdG" class=""><code>/classes/{id}/status</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Đổi trạng thái lớp (đang mở, đã đóng, lưu trữ)</td></tr><tr id="86572f78-9858-83de-b574-81222100fff4" dir="ltr"><td id="NxMq" class="">POST</td><td id="BUdG" class=""><code>/classes/join-requests</code></td><td id="rZMM" class="">S</td><td id="AX?R" class="">Gửi yêu cầu bằng mã lớp (<code>{ &quot;code&quot;: &quot;…&quot; }</code>)</td></tr><tr id="48672f78-9858-82e2-b4b2-01bb48a1dba5" dir="ltr"><td id="NxMq" class="">GET</td><td id="BUdG" class=""><code>/classes/{id}/join-requests</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Yêu cầu đang chờ</td></tr><tr id="1c972f78-9858-82a2-8409-01f1908b3cd9" dir="ltr"><td id="NxMq" class="">PUT</td><td id="BUdG" class=""><code>/classes/{id}/join-requests/{reqId}</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Duyệt/từ chối</td></tr><tr id="62572f78-9858-8398-8308-019ada094c6d" dir="ltr"><td id="NxMq" class="">GET</td><td id="BUdG" class=""><code>/classes/{id}/members</code></td><td id="rZMM" class="">Thành viên</td><td id="AX?R" class="">Danh sách thành viên</td></tr><tr id="5b472f78-9858-8326-8bd2-811fe2297c7c" dir="ltr"><td id="NxMq" class="">POST</td><td id="BUdG" class=""><code>/classes/{id}/co-teachers</code></td><td id="rZMM" class="">T (chủ nhiệm)</td><td id="AX?R" class="">Thêm giảng viên đồng giảng dạy</td></tr><tr id="c3672f78-9858-8205-92ec-8110fb99274a" dir="ltr"><td id="NxMq" class="">DELETE</td><td id="BUdG" class=""><code>/classes/{id}/members/{userId}</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Gỡ thành viên</td></tr><tr id="1d572f78-9858-82fc-9411-013203b917f6" dir="ltr"><td id="NxMq" class="">POST</td><td id="BUdG" class=""><code>/classes/{id}/leave</code></td><td id="rZMM" class="">S</td><td id="AX?R" class="">Rời lớp</td></tr><tr id="ff972f78-9858-83fe-b044-0167b12d6ba8" dir="ltr"><td id="NxMq" class="">GET, POST</td><td id="BUdG" class=""><code>/classes/{id}/posts</code></td><td id="rZMM" class="">Thành viên / T</td><td id="AX?R" class="">Bảng tin: xem, đăng</td></tr><tr id="82a72f78-9858-82e7-ba26-019ea418cbd0" dir="ltr"><td id="NxMq" class="">PUT</td><td id="BUdG" class=""><code>/classes/{id}/posts/{postId}/pin</code></td><td id="rZMM" class="">T</td><td id="AX?R" class="">Ghim thông báo</td></tr><tr id="e3172f78-9858-834a-92e5-0137bdfd3794" dir="ltr"><td id="NxMq" class="">GET, POST</td><td id="BUdG" class=""><code>/classes/{id}/materials</code></td><td id="rZMM" class="">Thành viên / T</td><td id="AX?R" class="">Tài liệu lớp</td></tr><tr id="50372f78-9858-8213-ba80-01a72dbfdeb6" dir="ltr"><td id="NxMq" class="">GET</td><td id="BUdG" class=""><code>/class-materials/{id}/download</code></td><td id="rZMM" class="">Thành viên</td><td id="AX?R" class="">Tải tài liệu lớp (kiểm tra quyền)</td></tr></tbody></table><h3 id="42372f78-9858-804b-86a0-fc3bdb08779c" class="" dir="auto">5.8 Bài tập và bài kiểm tra (FR-13, FR-14)</h3><table id="42372f78-9858-80d3-882f-e5a601e3e784" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="7da72f78-9858-83b0-b11b-01b46e7d1f30" dir="ltr"><th id="NNh}" class="simple-table-header-color simple-table-header">Method</th><th id="@em:" class="simple-table-header-color simple-table-header">Endpoint</th><th id="`}^X" class="simple-table-header-color simple-table-header">Vai trò</th><th id="^BAI" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="35372f78-9858-8381-a862-81f3be7f1d6a" dir="ltr"><td id="NNh}" class="">POST</td><td id="@em:" class=""><code>/classes/{id}/assignments</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Tạo bài tập</td></tr><tr id="6bd72f78-9858-8241-b633-8149021cf34b" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/classes/{id}/assignments</code></td><td id="`}^X" class="">Thành viên</td><td id="^BAI" class="">Danh sách bài tập</td></tr><tr id="e1172f78-9858-8321-8318-01e4ab754a4c" dir="ltr"><td id="NNh}" class="">GET, PUT, DELETE</td><td id="@em:" class=""><code>/assignments/{id}</code></td><td id="`}^X" class="">Thành viên / T</td><td id="^BAI" class="">Chi tiết, sửa, xóa</td></tr><tr id="6b872f78-9858-8261-a13a-81f8643854d3" dir="ltr"><td id="NNh}" class="">POST</td><td id="@em:" class=""><code>/assignments/{id}/submissions</code></td><td id="`}^X" class="">S</td><td id="^BAI" class="">Nộp bài (một lần)</td></tr><tr id="9af72f78-9858-820c-9ff6-01bbadb007ea" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/assignments/{id}/submissions</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Danh sách bài nộp</td></tr><tr id="54d72f78-9858-8297-b940-81aa26d8ef10" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/assignments/{id}/submissions/me</code></td><td id="`}^X" class="">S</td><td id="^BAI" class="">Bài nộp và trạng thái của tôi</td></tr><tr id="22c72f78-9858-82ec-932e-019fce8c69f1" dir="ltr"><td id="NNh}" class="">PUT</td><td id="@em:" class=""><code>/submissions/{id}/grade</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Chấm điểm, nhận xét, trả bài</td></tr><tr id="ad872f78-9858-8262-9a45-01017bc1349f" dir="ltr"><td id="NNh}" class="">PUT</td><td id="@em:" class=""><code>/submissions/{id}/reopen</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Cho phép nộp lại</td></tr><tr id="71172f78-9858-82fb-8295-81aa5789c7d6" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/submissions/{id}/download</code></td><td id="`}^X" class="">S (chủ), T</td><td id="^BAI" class="">Tải file bài nộp</td></tr><tr id="75f72f78-9858-8273-8c51-81d91dd8eed7" dir="ltr"><td id="NNh}" class="">POST</td><td id="@em:" class=""><code>/classes/{id}/tests</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Tạo bài kiểm tra (từ quiz hoặc tự soạn)</td></tr><tr id="8f672f78-9858-82d6-a639-01bdc7724184" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/classes/{id}/tests</code></td><td id="`}^X" class="">Thành viên</td><td id="^BAI" class="">Danh sách bài kiểm tra</td></tr><tr id="45372f78-9858-8268-868a-0188d41418a8" dir="ltr"><td id="NNh}" class="">PUT, DELETE</td><td id="@em:" class=""><code>/tests/{id}</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Sửa, xóa</td></tr><tr id="66372f78-9858-8266-94d1-81e74f59a53d" dir="ltr"><td id="NNh}" class="">POST</td><td id="@em:" class=""><code>/tests/{id}/attempts</code></td><td id="`}^X" class="">S</td><td id="^BAI" class="">Bắt đầu làm (kiểm tra cửa sổ thời gian và số lần)</td></tr><tr id="16a72f78-9858-8233-81c6-01419443e08b" dir="ltr"><td id="NNh}" class="">POST</td><td id="@em:" class=""><code>/tests/{id}/attempts/{attemptId}/submit</code></td><td id="`}^X" class="">S</td><td id="^BAI" class="">Nộp bài</td></tr><tr id="77a72f78-9858-82d7-9b79-014699016b99" dir="ltr"><td id="NNh}" class="">GET</td><td id="@em:" class=""><code>/tests/{id}/results</code></td><td id="`}^X" class="">T</td><td id="^BAI" class="">Kết quả cả lớp</td></tr></tbody></table><h3 id="42372f78-9858-80b9-a04c-f8061d2d79ec" class="" dir="auto">5.9 Lịch, sự kiện, task, lộ trình (FR-15, 16, 17)</h3><table id="42372f78-9858-8036-9491-dba9c5ec0d1a" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="06872f78-9858-82c2-92d1-81c05e473310" dir="ltr"><th id="erbr" class="simple-table-header-color simple-table-header">Method</th><th id="@E^?" class="simple-table-header-color simple-table-header">Endpoint</th><th id="c}`:" class="simple-table-header-color simple-table-header">Vai trò</th><th id="auVJ" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="f2272f78-9858-82a8-8334-01478a14a1f5" dir="ltr"><td id="erbr" class="">POST</td><td id="@E^?" class=""><code>/classes/{id}/events</code></td><td id="c}`:" class="">T</td><td id="auVJ" class="">Tạo sự kiện học/kiểm tra/họp (có <code>meetingUrl</code> dán tay)</td></tr><tr id="d0a72f78-9858-830b-8af9-019183dde1f5" dir="ltr"><td id="erbr" class="">PUT, DELETE</td><td id="@E^?" class=""><code>/events/{id}</code></td><td id="c}`:" class="">T</td><td id="auVJ" class="">Sửa, hủy sự kiện (phát thông báo)</td></tr><tr id="d6b72f78-9858-8234-b497-0191cf43c266" dir="ltr"><td id="erbr" class="">GET</td><td id="@E^?" class=""><code>/calendar?from=&amp;to=&amp;view=</code></td><td id="c}`:" class="">All</td><td id="auVJ" class="">Lịch tổng hợp: cá nhân, lớp, kiểm tra, họp</td></tr><tr id="57172f78-9858-83ab-b06a-813bffe19fb7" dir="ltr"><td id="erbr" class="">POST</td><td id="@E^?" class=""><code>/calendar/imports/preview</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Tải .ics/CSV, trả xem trước và danh sách trùng</td></tr><tr id="79972f78-9858-83df-b16c-817bb47c8974" dir="ltr"><td id="erbr" class="">POST</td><td id="@E^?" class=""><code>/calendar/imports/{importId}/confirm</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Xác nhận nhập</td></tr><tr id="12672f78-9858-82da-9365-81e3a5f4c2b9" dir="ltr"><td id="erbr" class="">GET</td><td id="@E^?" class=""><code>/calendar/import-template</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Tải mẫu CSV</td></tr><tr id="8e372f78-9858-831c-9a7a-8139ebb49f35" dir="ltr"><td id="erbr" class="">GET, POST</td><td id="@E^?" class=""><code>/personal-events</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Sự kiện cá nhân</td></tr><tr id="0a772f78-9858-8278-addd-811db7187355" dir="ltr"><td id="erbr" class="">PUT, DELETE</td><td id="@E^?" class=""><code>/personal-events/{id}</code></td><td id="c}`:" class="">S (chủ)</td><td id="auVJ" class="">Sửa, xóa</td></tr><tr id="c0272f78-9858-83fe-b113-8137c89a67b9" dir="ltr"><td id="erbr" class="">GET</td><td id="@E^?" class=""><code>/integrations/google/authorize</code></td><td id="c}`:" class="">All</td><td id="auVJ" class="">Bắt đầu OAuth (scope chỉ đọc)</td></tr><tr id="b9172f78-9858-8269-866a-811b671bc4ce" dir="ltr"><td id="erbr" class="">GET</td><td id="@E^?" class=""><code>/integrations/google/callback</code></td><td id="c}`:" class="">All</td><td id="auVJ" class="">Nhận mã OAuth</td></tr><tr id="1a572f78-9858-837c-9ae6-012770851fa0" dir="ltr"><td id="erbr" class="">POST</td><td id="@E^?" class=""><code>/integrations/google/sync</code></td><td id="c}`:" class="">All</td><td id="auVJ" class="">Đồng bộ đọc lịch</td></tr><tr id="c5372f78-9858-830c-b432-01fd8582a82f" dir="ltr"><td id="erbr" class="">DELETE</td><td id="@E^?" class=""><code>/integrations/google</code></td><td id="c}`:" class="">All</td><td id="auVJ" class="">Ngắt kết nối, xóa token</td></tr><tr id="49972f78-9858-83d5-8564-01a0d0578a23" dir="ltr"><td id="erbr" class="">GET, POST</td><td id="@E^?" class=""><code>/tasks</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Task theo ngày: xem, tạo</td></tr><tr id="9cd72f78-9858-82bf-b5dc-818bd1c332e4" dir="ltr"><td id="erbr" class="">PUT, DELETE</td><td id="@E^?" class=""><code>/tasks/{id}</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Sửa, xóa</td></tr><tr id="39972f78-9858-8212-a649-81b53a56e35e" dir="ltr"><td id="erbr" class="">PUT</td><td id="@E^?" class=""><code>/tasks/{id}/complete</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Hoàn thành</td></tr><tr id="2e972f78-9858-834c-94f9-014db804558e" dir="ltr"><td id="erbr" class="">GET, POST</td><td id="@E^?" class=""><code>/goals</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Mục tiêu học tập</td></tr><tr id="80a72f78-9858-8285-8864-01bb0e85a206" dir="ltr"><td id="erbr" class="">PUT, DELETE</td><td id="@E^?" class=""><code>/goals/{id}</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Sửa, xóa</td></tr><tr id="2a972f78-9858-8362-8d29-818a54dd8862" dir="ltr"><td id="erbr" class="">GET</td><td id="@E^?" class=""><code>/study-plans/{id}</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Xem đề xuất của AI</td></tr><tr id="43a72f78-9858-82f3-94ee-016f7c6872e7" dir="ltr"><td id="erbr" class="">PUT</td><td id="@E^?" class=""><code>/study-plans/{id}/items/{itemId}</code></td><td id="c}`:" class="">S</td><td id="auVJ" class="">Chấp nhận, sửa, bỏ từng mục</td></tr></tbody></table><h3 id="42372f78-9858-8023-bc5e-f5f901bcf033" class="" dir="auto">5.10 Chat và thông báo (FR-18, 19)</h3><table id="42372f78-9858-80e6-adb4-cb6a199ff63d" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="1fb72f78-9858-8351-b9aa-813ca6be8e3d" dir="ltr"><th id="Fkg~" class="simple-table-header-color simple-table-header">Method</th><th id="H`AL" class="simple-table-header-color simple-table-header">Endpoint</th><th id="gIKG" class="simple-table-header-color simple-table-header">Vai trò</th><th id="fxNN" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="90d72f78-9858-829e-aba8-81011fd3510c" dir="ltr"><td id="Fkg~" class="">GET</td><td id="H`AL" class=""><code>/conversations</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Danh sách cuộc trò chuyện</td></tr><tr id="bdd72f78-9858-8373-9518-81038de6e947" dir="ltr"><td id="Fkg~" class="">POST</td><td id="H`AL" class=""><code>/conversations/direct</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Mở chat 1-1 với <code>{ &quot;userId&quot;: … }</code></td></tr><tr id="6b872f78-9858-8333-9178-016b5e7c3676" dir="ltr"><td id="Fkg~" class="">GET</td><td id="H`AL" class=""><code>/conversations/{id}/messages?cursor=&amp;limit=</code></td><td id="gIKG" class="">Thành viên</td><td id="fxNN" class="">Lịch sử, phân trang cursor</td></tr><tr id="d0472f78-9858-8225-9995-81172d761e42" dir="ltr"><td id="Fkg~" class="">POST</td><td id="H`AL" class=""><code>/conversations/{id}/messages</code></td><td id="gIKG" class="">Thành viên</td><td id="fxNN" class="">Gửi qua REST (dự phòng khi mất WebSocket)</td></tr><tr id="59972f78-9858-8306-8cbe-818417eb03ec" dir="ltr"><td id="Fkg~" class="">PUT</td><td id="H`AL" class=""><code>/conversations/{id}/read</code></td><td id="gIKG" class="">Thành viên</td><td id="fxNN" class="">Đánh dấu đã đọc đến một tin nhắn</td></tr><tr id="cf672f78-9858-8279-b755-8190474f9d47" dir="ltr"><td id="Fkg~" class="">GET</td><td id="H`AL" class=""><code>/notifications?cursor=&amp;unread=</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Danh sách thông báo</td></tr><tr id="e3272f78-9858-82c8-939b-01e523f47997" dir="ltr"><td id="Fkg~" class="">GET</td><td id="H`AL" class=""><code>/notifications/unread-count</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Số chưa đọc</td></tr><tr id="6e572f78-9858-83f9-95d6-81e6c090a6e6" dir="ltr"><td id="Fkg~" class="">PUT</td><td id="H`AL" class=""><code>/notifications/{id}/read</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Đánh dấu đã đọc</td></tr><tr id="1b572f78-9858-837a-83d0-019a81ee9914" dir="ltr"><td id="Fkg~" class="">PUT</td><td id="H`AL" class=""><code>/notifications/read-all</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Đọc tất cả</td></tr><tr id="16b72f78-9858-83a3-8e24-01950a50766d" dir="ltr"><td id="Fkg~" class="">GET, PUT</td><td id="H`AL" class=""><code>/notifications/settings</code></td><td id="gIKG" class="">All</td><td id="fxNN" class="">Cấu hình loại thông báo, kênh (trong app, email)</td></tr></tbody></table><h3 id="42372f78-9858-80e7-b7b6-f8c8abaf2e2c" class="" dir="auto">5.11 Quản trị (FR-11)</h3><table id="42372f78-9858-80c9-ac11-db506423fbac" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="05b72f78-9858-833f-9a19-81c4fad00cfd" dir="ltr"><th id="Bd\h" class="simple-table-header-color simple-table-header">Method</th><th id="i&gt;CQ" class="simple-table-header-color simple-table-header">Endpoint</th><th id="^\F;" class="simple-table-header-color simple-table-header">Vai trò</th><th id="s?yg" class="simple-table-header-color simple-table-header">Mô tả</th></tr></thead><tbody><tr id="d8172f78-9858-8250-8059-01dcb4c03262" dir="ltr"><td id="Bd\h" class="">GET</td><td id="i&gt;CQ" class=""><code>/admin/classes</code></td><td id="^\F;" class="">A</td><td id="s?yg" class="">Tất cả lớp</td></tr><tr id="c3372f78-9858-82da-9168-019a1293e51a" dir="ltr"><td id="Bd\h" class="">PUT</td><td id="i&gt;CQ" class=""><code>/admin/classes/{id}/status</code></td><td id="^\F;" class="">A</td><td id="s?yg" class="">Khóa/mở lớp</td></tr><tr id="d6672f78-9858-821b-aaf5-0189cc64614a" dir="ltr"><td id="Bd\h" class="">GET</td><td id="i&gt;CQ" class=""><code>/admin/reports</code></td><td id="^\F;" class="">A</td><td id="s?yg" class="">Báo cáo từ người dùng (gồm báo AI sai)</td></tr><tr id="a4472f78-9858-8202-9d2c-811009bd07e0" dir="ltr"><td id="Bd\h" class="">PUT</td><td id="i&gt;CQ" class=""><code>/admin/reports/{id}</code></td><td id="^\F;" class="">A</td><td id="s?yg" class="">Xử lý báo cáo</td></tr><tr id="4cb72f78-9858-8362-bd88-8107d2318615" dir="ltr"><td id="Bd\h" class="">GET, PUT</td><td id="i&gt;CQ" class=""><code>/admin/settings</code></td><td id="^\F;" class="">A</td><td id="s?yg" class="">Cấu hình, hạn mức AI, cho phép Google tài khoản cá nhân</td></tr></tbody></table><h2 id="42372f78-9858-80df-9461-c7338c4ab143" class="" dir="auto">6. Kiến trúc hệ thống</h2><p id="42372f78-9858-803d-bfd8-c32ec5692834" class="" dir="auto">Client chỉ gọi Backend; khóa AI, Google OAuth và email nằm hoàn toàn ở Backend (NFR-03). Tác vụ nặng (trích xuất file, gọi AI) chạy ở worker bất đồng bộ.</p><pre id="42372f78-9858-8097-9a9a-c8acb0eb8ddc" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart LR
+  subgraph CL[&quot;Desktop Client - Electron&quot;]
+    UI[&quot;React + TypeScript UI&quot;]
+  end
+  subgraph BE[&quot;Backend - Spring Boot&quot;]
+    API[&quot;REST Controllers&quot;]
+    WS[&quot;WebSocket / STOMP&quot;]
+    SVC[&quot;Business Services: identity, classroom, assignment, schedule, meeting, chat, notification, learning, AI&quot;]
+    JOB[&quot;AI Job Worker&quot;]
+    FP[&quot;File Processing: PDFBox, POI&quot;]
+    NW[&quot;Notification Worker&quot;]
+    SCH[&quot;Scheduler&quot;]
+  end
+  DB[(&quot;MySQL&quot;)]
+  FS[(&quot;File storage&quot;)]
+  AIP[&quot;AI Provider&quot;]
+  GC[&quot;Google Calendar API - chỉ đọc&quot;]
+  SM[&quot;Email SMTP&quot;]
+  UI --&gt;|&quot;REST + JWT&quot;| API
+  UI &lt;--&gt;|&quot;tin nhắn, sự kiện&quot;| WS
+  API --&gt; SVC
+  WS --&gt; SVC
+  SVC --&gt; DB
+  SVC --&gt; FS
+  SVC --&gt;|&quot;tạo job&quot;| JOB
+  JOB --&gt; FP
+  JOB --&gt;|&quot;prompt&quot;| AIP
+  SVC --&gt;|&quot;OAuth đọc lịch&quot;| GC
+  SCH --&gt;|&quot;nhắc hạn&quot;| DB
+  NW --&gt;|&quot;đọc outbox&quot;| DB
+  NW --&gt; SM
+  NW --&gt; WS</code></pre><h3 id="42372f78-9858-8040-8286-e0fd136a565e" class="" dir="auto">6.1 Phân lớp và module Backend</h3><table id="42372f78-9858-8096-88e8-fdd75c5d3bc2" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="e1d72f78-9858-8289-97f2-01a6f071206c" dir="ltr"><th id="tnTJ" class="simple-table-header-color simple-table-header">Lớp</th><th id="be`g" class="simple-table-header-color simple-table-header">Trách nhiệm</th><th id="Ej{J" class="simple-table-header-color simple-table-header">Quy tắc</th></tr></thead><tbody><tr id="b6972f78-9858-829d-b174-810cc5a818f9" dir="ltr"><td id="tnTJ" class="">Controller</td><td id="be`g" class="">Nhận request, validate DTO, gọi service, trả response</td><td id="Ej{J" class="">Không chứa nghiệp vụ</td></tr><tr id="00172f78-9858-8341-8fe3-819f5b6fc9ba" dir="ltr"><td id="tnTJ" class="">Service</td><td id="be`g" class="">Quy tắc nghiệp vụ, kiểm tra quyền, ranh giới transaction</td><td id="Ej{J" class="">Không giữ transaction mở khi gọi AI/Google</td></tr><tr id="a9972f78-9858-8220-842d-81eb6030fe7a" dir="ltr"><td id="tnTJ" class="">Repository</td><td id="be`g" class="">Truy cập dữ liệu (Spring Data JPA)</td><td id="Ej{J" class="">DTO projection cho danh sách, chống N+1</td></tr><tr id="bd272f78-9858-832f-837c-811859ae3e14" dir="ltr"><td id="tnTJ" class="">Entity, DTO, Mapper</td><td id="be`g" class="">Mô hình dữ liệu và dữ liệu vào/ra</td><td id="Ej{J" class="">Không trả Entity trực tiếp</td></tr><tr id="b4d72f78-9858-836e-98d4-01320fb40ff8" dir="ltr"><td id="tnTJ" class="">Integration</td><td id="be`g" class="">Adapter AI Provider, Google, SMTP, lưu file</td><td id="Ej{J" class="">Đổi nhà cung cấp không ảnh hưởng service</td></tr></tbody></table><p id="42372f78-9858-8038-89be-ee36f2363e0a" class="" dir="auto">Module: <code>identity</code>, <code>classroom</code>, <code>assignment</code>, <code>schedule</code>, <code>meeting</code>, <code>chat</code>, <code>notification</code>, <code>learning</code> (course, material, quiz, flashcard, analytics), <code>ai</code>.</p><h3 id="42372f78-9858-803c-8f67-c0929effffeb" class="" dir="auto">6.2 Cơ chế xuyên suốt</h3><ul id="42372f78-9858-804f-9874-d41dcb3736db" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Job AI:</strong> ghi <code>ai_job</code> (PENDING) rồi trả 202; worker lấy job, gọi AI ngoài transaction, ghi kết quả, đẩy sự kiện. Retry tối đa 2 lần với backoff; quá hạn thì FAILED với mã lỗi dễ hiểu.</li></ul><ul id="42372f78-9858-80fb-81b9-c4a4131c5a8d" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Transactional outbox:</strong> sự kiện thông báo ghi cùng transaction nghiệp vụ; worker gửi sau, có khóa duy nhất chống trùng.</li></ul><ul id="42372f78-9858-808d-a344-d3c9f53dcfb5" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Quyền:</strong> kiểm tra ở service theo (vai trò, quan hệ lớp, chủ sở hữu); có kiểm thử quyền giữa các lớp.</li></ul><ul id="42372f78-9858-80d7-92bd-fc6e2dfc5154" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Thời gian:</strong> lưu UTC, kèm múi giờ sự kiện; hạn nộp và giờ làm bài do máy chủ quyết định.</li></ul><ul id="42372f78-9858-80a9-bd48-e6db788ffa81" class="bulleted-list" dir="auto"><li style="list-style-type:disc"><strong>Chống trùng:</strong> unique constraint + <code>idempotency_key</code> + <code>version</code> (optimistic locking).</li></ul><h2 id="42372f78-9858-80db-82dc-dfa252dace82" class="" dir="auto">7. Sơ đồ Use Case</h2><p id="42372f78-9858-80f7-926c-ef701cdc274f" class="" dir="auto">Ba sơ đồ theo nhóm chức năng. Đường nét đứt biểu diễn quan hệ include/extend giữa các use case.</p><h3 id="42372f78-9858-8063-88f8-d81d1929a2e7" class="" dir="auto">7.1 Học tập cá nhân với AI (Phase 1 và 5)</h3><pre id="42372f78-9858-80f0-8625-f93c137f224f" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart LR
+  S([&quot;Student&quot;])
+  AIP([&quot;AI Provider&quot;])
+  subgraph SYS[&quot;Hệ thống - Học tập cá nhân&quot;]
+    UC02([&quot;UC-02 Đăng nhập&quot;])
+    UC06([&quot;UC-06..08 Quản lý khóa học, chương, chủ đề&quot;])
+    UC09([&quot;UC-09 Tải tài liệu lên&quot;])
+    UC12([&quot;UC-12 Trích xuất văn bản&quot;])
+    UC10([&quot;UC-10 Xem, tải, xóa tài liệu&quot;])
+    UC13([&quot;UC-13 Tóm tắt tài liệu&quot;])
+    UC14([&quot;UC-14 Giải thích khái niệm&quot;])
+    UC15([&quot;UC-15 Hỏi đáp theo tài liệu&quot;])
+    UC17([&quot;UC-17 Báo câu trả lời sai&quot;])
+    UC18([&quot;UC-18 Tạo quiz bằng AI&quot;])
+    UC19([&quot;UC-19 Làm quiz&quot;])
+    UC20([&quot;UC-20 Nộp và tự chấm&quot;])
+    UC21([&quot;UC-21 Xem giải thích, kết quả&quot;])
+    UC22([&quot;UC-22 Xem lịch sử&quot;])
+    UC23([&quot;UC-23 Tạo flashcard&quot;])
+    UC24([&quot;UC-24 Ôn flashcard&quot;])
+    UC25([&quot;UC-25 Xem thống kê học tập&quot;])
+  end
+  S --- UC06
+  S --- UC09
+  S --- UC10
+  S --- UC13
+  S --- UC14
+  S --- UC15
+  S --- UC17
+  S --- UC18
+  S --- UC19
+  S --- UC22
+  S --- UC23
+  S --- UC24
+  S --- UC25
+  UC06 -.-&gt;|include| UC02
+  UC09 -.-&gt;|include| UC12
+  UC13 -.-&gt;|include| UC12
+  UC19 -.-&gt;|include| UC20
+  UC20 -.-&gt;|include| UC21
+  UC17 -.-&gt;|extend| UC15
+  UC13 --- AIP
+  UC14 --- AIP
+  UC15 --- AIP
+  UC18 --- AIP
+  UC23 --- AIP</code></pre><h3 id="42372f78-9858-80f2-873b-cd426b3803de" class="" dir="auto">7.2 Lớp học, bài tập, quản trị (Phase 2)</h3><pre id="42372f78-9858-8020-8fd2-c7767aaa21ef" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart LR
+  T([&quot;Teacher&quot;])
+  S([&quot;Student&quot;])
+  A([&quot;Administrator&quot;])
+  subgraph SYS[&quot;Hệ thống - Lớp học&quot;]
+    UC28([&quot;UC-28 Tạo lớp&quot;])
+    UC29([&quot;UC-29 Gửi yêu cầu vào lớp bằng mã&quot;])
+    UC30([&quot;UC-30 Duyệt hoặc từ chối yêu cầu&quot;])
+    UC31([&quot;UC-31 Quản lý thành viên, đồng giảng dạy&quot;])
+    UC32([&quot;UC-32 Bảng tin, ghim thông báo&quot;])
+    UC33([&quot;UC-33 Đăng tài liệu lớp&quot;])
+    UC34([&quot;UC-34 Rời lớp hoặc bị gỡ&quot;])
+    UC35([&quot;UC-35 Tạo bài tập&quot;])
+    UC36([&quot;UC-36 Nộp bài&quot;])
+    UC37([&quot;UC-37 Chấm điểm, nhận xét, trả bài&quot;])
+    UC38([&quot;UC-38 Xử lý nộp muộn&quot;])
+    UC39([&quot;UC-39 Tạo bài kiểm tra&quot;])
+    UC40([&quot;UC-40 Làm bài kiểm tra&quot;])
+    UC57([&quot;UC-57 Dashboard giảng viên&quot;])
+    UC58([&quot;UC-58 Dashboard sinh viên&quot;])
+    UC27([&quot;UC-27 Quản lý người dùng, vai trò&quot;])
+    UC59([&quot;UC-59 Xử lý báo cáo&quot;])
+    UC60([&quot;UC-60 Cấu hình, hạn mức AI&quot;])
+  end
+  T --- UC28
+  T --- UC30
+  T --- UC31
+  T --- UC32
+  T --- UC33
+  T --- UC35
+  T --- UC37
+  T --- UC39
+  T --- UC57
+  S --- UC29
+  S --- UC34
+  S --- UC36
+  S --- UC40
+  S --- UC58
+  A --- UC27
+  A --- UC59
+  A --- UC60
+  UC30 -.-&gt;|include| UC31
+  UC36 -.-&gt;|include| UC38
+  UC37 -.-&gt;|extend| UC36
+  UC40 -.-&gt;|include| UC39</code></pre><h3 id="42372f78-9858-802c-bf46-f95f455b7255" class="" dir="auto">7.3 Lịch, kế hoạch, chat, thông báo (Phase 3 đến 5)</h3><pre id="42372f78-9858-80a2-9270-edc7c75cf9cc" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart LR
+  T([&quot;Teacher&quot;])
+  S([&quot;Student&quot;])
+  GC([&quot;Google Calendar API&quot;])
+  EM([&quot;Email Service&quot;])
+  SC([&quot;Scheduler&quot;])
+  AIP([&quot;AI Provider&quot;])
+  subgraph SYS[&quot;Hệ thống - Lịch, kế hoạch, giao tiếp&quot;]
+    UC41([&quot;UC-41 Tạo sự kiện, lưu link Meet&quot;])
+    UC42([&quot;UC-42 Hủy hoặc đổi sự kiện&quot;])
+    UC43([&quot;UC-43 Nhập lịch .ics, CSV&quot;])
+    UC44([&quot;UC-44 Xem lịch ngày, tuần, tháng&quot;])
+    UC45([&quot;UC-45 Cảnh báo trùng lịch&quot;])
+    UC46([&quot;UC-46 Đồng bộ Google Calendar - đọc&quot;])
+    UC47([&quot;UC-47..48 Mục tiêu và task theo ngày&quot;])
+    UC49([&quot;UC-49 AI đề xuất lộ trình&quot;])
+    UC50([&quot;UC-50 Chấp nhận, sửa, bỏ đề xuất&quot;])
+    UC51([&quot;UC-51..53 Chat 1-1 và chat lớp&quot;])
+    UC54([&quot;UC-54..56 Thông báo&quot;])
+    UC61([&quot;Nhắc hạn nộp, nhắc lịch&quot;])
+  end
+  T --- UC41
+  T --- UC42
+  S --- UC43
+  S --- UC44
+  S --- UC46
+  S --- UC47
+  S --- UC49
+  S --- UC50
+  S --- UC51
+  T --- UC51
+  S --- UC54
+  T --- UC54
+  UC43 -.-&gt;|include| UC45
+  UC46 -.-&gt;|extend| UC44
+  UC49 -.-&gt;|include| UC50
+  UC46 --- GC
+  UC49 --- AIP
+  UC54 --- EM
+  UC61 --- SC
+  UC61 -.-&gt;|include| UC54</code></pre><p id="42372f78-9858-801b-9c48-c1cc3f49a8fb" class="" dir="auto">Lưu ý: UC-61 là use case hệ thống do Scheduler kích hoạt, không có actor người dùng.</p><h2 id="42372f78-9858-8042-b769-ff23787e1ea5" class="" dir="auto">8. Sơ đồ hoạt động (Activity Diagram)</h2><p id="42372f78-9858-8074-8df9-c3efa5ab4e7f" class="" dir="auto">Mỗi sơ đồ chia làn theo đối tượng thực hiện. Hình thoi là điểm rẽ nhánh.</p><h3 id="42372f78-9858-8056-9196-f293c460bf32" class="" dir="auto">8.1 Tải tài liệu và trích xuất văn bản (UC-09, UC-12)</h3><pre id="42372f78-9858-806f-8482-d2e745b03766" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; pick
+  subgraph SV[&quot;Sinh viên&quot;]
+    pick[&quot;Chọn file PDF, DOCX hoặc TXT&quot;]
+    view[&quot;Xem văn bản đã trích xuất&quot;]
+    retry[&quot;Thử lại hoặc tải file khác&quot;]
+  end
+  subgraph BE[&quot;Backend&quot;]
+    v1{&quot;Đúng loại và dưới giới hạn dung lượng?&quot;}
+    safe[&quot;Làm sạch tên file, lưu file, tạo bản ghi UPLOADED&quot;]
+    ext[&quot;Tạo tác vụ trích xuất, trạng thái EXTRACTING&quot;]
+  end
+  subgraph FPE[&quot;File Processing Engine&quot;]
+    parse[&quot;PDFBox hoặc POI đọc nội dung&quot;]
+    txt{&quot;Có văn bản đọc được?&quot;}
+    norm[&quot;Chuẩn hóa, chia chunk có số trang&quot;]
+    ok[&quot;Lưu chunk, trạng thái EXTRACTED&quot;]
+    fail[&quot;Trạng thái FAILED, ghi mã lỗi&quot;]
+  end
+  pick --&gt; v1
+  v1 -- Không --&gt; err[&quot;Báo lỗi: loại hoặc dung lượng không hợp lệ&quot;]
+  err --&gt; retry
+  v1 -- Có --&gt; safe --&gt; ext --&gt; parse --&gt; txt
+  txt -- Có --&gt; norm --&gt; ok --&gt; view --&gt; fin([&quot;Kết thúc&quot;])
+  txt -- &quot;Không, file scan&quot; --&gt; fail --&gt; retry</code></pre><h3 id="42372f78-9858-80a2-a031-d4599b50c73d" class="" dir="auto">8.2 Tóm tắt tài liệu bằng AI (UC-13)</h3><pre id="42372f78-9858-80b4-a573-c595f07ab247" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; sel
+  subgraph SV[&quot;Sinh viên&quot;]
+    sel[&quot;Chọn tài liệu và độ dài: ngắn, vừa, chi tiết&quot;]
+    show[&quot;Xem bản tóm tắt, có thể báo sai&quot;]
+    wait[&quot;Thấy trạng thái đang xử lý, có thể hủy&quot;]
+  end
+  subgraph BE[&quot;Backend&quot;]
+    chk{&quot;Tài liệu đã EXTRACTED và thuộc người dùng?&quot;}
+    job[&quot;Tạo ai_job PENDING, trả 202&quot;]
+    long{&quot;Tài liệu dài?&quot;}
+    chunk[&quot;Chia đoạn, tóm tắt từng đoạn rồi gộp&quot;]
+    one[&quot;Dựng prompt một lần&quot;]
+    call[&quot;Gọi AI Provider ngoài transaction&quot;]
+    okq{&quot;Gọi thành công?&quot;}
+    rt{&quot;Còn lượt thử lại?&quot;}
+    val{&quot;Đầu ra hợp lệ?&quot;}
+    save[&quot;Lưu bản tóm tắt cùng model, phiên bản prompt, nguồn, thời điểm&quot;]
+    fl[&quot;Job FAILED, thông báo lỗi dễ hiểu&quot;]
+  end
+  sel --&gt; chk
+  chk -- Không --&gt; e1[&quot;Báo lỗi 422 hoặc 403&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  chk -- Có --&gt; job --&gt; wait --&gt; long
+  long -- Có --&gt; chunk --&gt; call
+  long -- Không --&gt; one --&gt; call
+  call --&gt; okq
+  okq -- Không --&gt; rt
+  rt -- Có --&gt; call
+  rt -- Không --&gt; fl --&gt; fin
+  okq -- Có --&gt; val
+  val -- Không --&gt; rt
+  val -- Có --&gt; save --&gt; show --&gt; fin</code></pre><h3 id="42372f78-9858-8018-934e-e21f7785175a" class="" dir="auto">8.3 Tạo quiz, làm bài và chấm điểm (UC-18 đến UC-22)</h3><pre id="42372f78-9858-8014-a6bb-e1ea91c2ca1d" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; cfg
+  subgraph SV[&quot;Sinh viên&quot;]
+    cfg[&quot;Chọn tài liệu, số câu, chủ đề, độ khó&quot;]
+    take[&quot;Bắt đầu lượt làm, trả lời, lưu nháp&quot;]
+    sub[&quot;Nộp bài&quot;]
+    res[&quot;Xem điểm, đáp án, giải thích&quot;]
+  end
+  subgraph BE[&quot;Backend&quot;]
+    gen[&quot;Job AI sinh câu hỏi dạng JSON&quot;]
+    parse{&quot;Parse JSON và kiểm tra cấu trúc đạt?&quot;}
+    rt{&quot;Đã thử lại quá 2 lần?&quot;}
+    saveq[&quot;Lưu quiz và câu hỏi&quot;]
+    chk{&quot;Lượt làm còn hiệu lực, nộp lần đầu?&quot;}
+    grade[&quot;Chấm bằng đáp án đã lưu, ghi điểm, thời gian, từng câu&quot;]
+    hist[&quot;Lưu kết quả vào lịch sử, cập nhật thống kê&quot;]
+  end
+  cfg --&gt; gen --&gt; parse
+  parse -- Không --&gt; rt
+  rt -- Không --&gt; gen
+  rt -- Có --&gt; ef[&quot;Báo không tạo được quiz&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  parse -- Có --&gt; saveq --&gt; take --&gt; sub --&gt; chk
+  chk -- Không --&gt; e2[&quot;Trả lại kết quả đã có, không chấm lại&quot;] --&gt; res
+  chk -- Có --&gt; grade --&gt; hist --&gt; res --&gt; fin</code></pre><h3 id="42372f78-9858-80c7-82ce-fb8d3b576e12" class="" dir="auto">8.4 Tham gia lớp bằng mã (UC-29, UC-30, UC-34)</h3><pre id="42372f78-9858-80cd-b5a1-e9528957a778" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; code
+  subgraph SV[&quot;Sinh viên&quot;]
+    code[&quot;Nhập mã lớp&quot;]
+    wt[&quot;Chờ duyệt, xem trạng thái&quot;]
+    use[&quot;Vào lớp, bảng tin, tài liệu, phòng chat&quot;]
+  end
+  subgraph BE[&quot;Backend&quot;]
+    f{&quot;Mã đúng và lớp đang mở?&quot;}
+    dup{&quot;Đã là thành viên hoặc có yêu cầu PENDING?&quot;}
+    req[&quot;Tạo yêu cầu PENDING, ghi outbox thông báo&quot;]
+    add[&quot;Thêm thành viên và vào phòng chat lớp, ghi outbox&quot;]
+    rej[&quot;Đánh dấu REJECTED, ghi outbox&quot;]
+  end
+  subgraph GV[&quot;Giảng viên&quot;]
+    dec{&quot;Duyệt yêu cầu?&quot;}
+  end
+  code --&gt; f
+  f -- Không --&gt; e1[&quot;Báo mã không hợp lệ&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  f -- Có --&gt; dup
+  dup -- Có --&gt; e2[&quot;Báo đã gửi hoặc đã trong lớp&quot;] --&gt; fin
+  dup -- Không --&gt; req --&gt; wt --&gt; dec
+  dec -- Duyệt --&gt; add --&gt; use --&gt; fin
+  dec -- Từ chối --&gt; rej --&gt; fin</code></pre><h3 id="42372f78-9858-8027-9e04-ca97ca82d59e" class="" dir="auto">8.5 Nộp bài tập và chấm điểm (UC-36 đến UC-38)</h3><pre id="42372f78-9858-803d-8ef1-c1f93ad4e457" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; open
+  subgraph SV[&quot;Sinh viên&quot;]
+    open[&quot;Xem yêu cầu, tải tài liệu&quot;]
+    sub[&quot;Nộp file hoặc câu trả lời kèm Idempotency-Key&quot;]
+    st[&quot;Xem trạng thái: đã nộp, quá hạn, đã chấm&quot;]
+  end
+  subgraph BE[&quot;Backend - một transaction&quot;]
+    mem{&quot;Là thành viên lớp?&quot;}
+    ex{&quot;Đã có bài nộp hợp lệ?&quot;}
+    tm{&quot;Giờ máy chủ so với hạn nộp&quot;}
+    late{&quot;Cho phép nộp muộn?&quot;}
+    ins[&quot;Lưu bài nộp, đánh dấu is_late, ghi outbox&quot;]
+    rej[&quot;Từ chối: bài đã đóng&quot;]
+  end
+  subgraph GV[&quot;Giảng viên&quot;]
+    gr[&quot;Xem bài nộp, chấm điểm, nhận xét, trả bài&quot;]
+  end
+  open --&gt; sub --&gt; mem
+  mem -- Không --&gt; e1[&quot;403&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  mem -- Có --&gt; ex
+  ex -- Có --&gt; e2[&quot;409 đã nộp, trả kết quả cũ nếu cùng khóa&quot;] --&gt; st
+  ex -- Không --&gt; tm
+  tm -- &quot;Trước hạn&quot; --&gt; ins
+  tm -- &quot;Sau hạn&quot; --&gt; late
+  late -- Có --&gt; ins
+  late -- Không --&gt; rej --&gt; st
+  ins --&gt; gr --&gt; st --&gt; fin</code></pre><h3 id="42372f78-9858-807b-974d-c45cfa3ac0ae" class="" dir="auto">8.6 Nhập lịch từ .ics hoặc CSV (UC-43, UC-45)</h3><pre id="42372f78-9858-8029-b489-c5c13c64b4c5" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Bắt đầu&quot;]) --&gt; up
+  subgraph SV[&quot;Sinh viên&quot;]
+    up[&quot;Chọn file .ics hoặc CSV theo mẫu&quot;]
+    prev[&quot;Xem trước danh sách sự kiện&quot;]
+    cf{&quot;Xác nhận nhập?&quot;}
+  end
+  subgraph BE[&quot;Backend&quot;]
+    ty{&quot;Đúng định dạng và phân tích được?&quot;}
+    tz[&quot;Chuẩn hóa múi giờ về UTC, giữ múi giờ gốc&quot;]
+    ov[&quot;Tìm sự kiện trùng giờ với lịch đã có&quot;]
+    sv[&quot;Lưu sự kiện kèm nguồn nhập, múi giờ, thời điểm cập nhật&quot;]
+  end
+  up --&gt; ty
+  ty -- Không --&gt; er[&quot;Báo lỗi dòng hoặc định dạng sai&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  ty -- Có --&gt; tz --&gt; ov --&gt; prev --&gt; cf
+  cf -- &quot;Không&quot; --&gt; fin
+  cf -- &quot;Có, tick chọn mục trùng nếu muốn nhập&quot; --&gt; sv --&gt; fin</code></pre><h3 id="42372f78-9858-8057-842f-fdca6fec4ecc" class="" dir="auto">8.7 Gửi thông báo bằng outbox (FR-19)</h3><pre id="42372f78-9858-807d-a114-c3db7b4498f7" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">flowchart TD
+  start([&quot;Sự kiện nghiệp vụ&quot;]) --&gt; w
+  subgraph BE[&quot;Service nghiệp vụ - cùng transaction&quot;]
+    w[&quot;Ghi dữ liệu nghiệp vụ và dòng outbox PENDING&quot;]
+    uq{&quot;Trùng khóa người nhận, loại sự kiện, đối tượng, mốc nhắc?&quot;}
+  end
+  subgraph NW[&quot;Notification Worker&quot;]
+    poll[&quot;Đọc outbox PENDING đến hạn&quot;]
+    set{&quot;Người dùng bật loại thông báo này?&quot;}
+    send[&quot;Tạo notification trong app, đẩy WebSocket, gửi email&quot;]
+    ok{&quot;Gửi thành công?&quot;}
+    tries{&quot;Còn lượt thử?&quot;}
+    mark[&quot;Đánh dấu SENT&quot;]
+    bad[&quot;Đánh dấu FAILED, ghi số lần thử&quot;]
+    skip[&quot;Bỏ qua, đánh dấu SKIPPED&quot;]
+  end
+  w --&gt; uq
+  uq -- Có --&gt; drop[&quot;Bỏ qua bản ghi trùng&quot;] --&gt; fin([&quot;Kết thúc&quot;])
+  uq -- Không --&gt; poll --&gt; set
+  set -- Không --&gt; skip --&gt; fin
+  set -- Có --&gt; send --&gt; ok
+  ok -- Có --&gt; mark --&gt; fin
+  ok -- Không --&gt; tries
+  tries -- Có --&gt; poll
+  tries -- Không --&gt; bad --&gt; fin</code></pre><h2 id="42372f78-9858-80e4-a433-f8ef6f5165f2" class="" dir="auto">9. Sơ đồ tuần tự (Sequence Diagram)</h2><h3 id="42372f78-9858-80d0-ba8a-e02aab4ac5c5" class="" dir="auto">9.1 Đăng nhập và làm mới token (UC-02)</h3><pre id="42372f78-9858-800f-bea6-d4d48ab5a793" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Người dùng
+  participant UI as Desktop UI
+  participant API as AuthController
+  participant SVC as AuthService
+  participant DB as MySQL
+  U-&gt;&gt;UI: Nhập email, mật khẩu
+  UI-&gt;&gt;API: POST /auth/login
+  API-&gt;&gt;SVC: login(request)
+  SVC-&gt;&gt;DB: Tìm user theo email
+  alt Sai thông tin hoặc tài khoản bị khóa
+    SVC--&gt;&gt;API: BAD_CREDENTIALS hoặc ACCOUNT_LOCKED
+    API--&gt;&gt;UI: 401 hoặc 403
+    UI--&gt;&gt;U: Thông báo lỗi dễ hiểu
+  else Hợp lệ
+    SVC-&gt;&gt;SVC: So khớp mật khẩu băm
+    SVC-&gt;&gt;DB: Lưu refresh_token băm, đặt lại bộ đếm sai
+    SVC--&gt;&gt;API: accessToken, refreshToken, user
+    API--&gt;&gt;UI: 200
+    UI--&gt;&gt;U: Vào màn hình theo vai trò
+  end
+  Note over UI,API: Khi access token hết hạn, UI gọi POST /auth/refresh, token cũ bị thu hồi và cấp token mới</code></pre><h3 id="42372f78-9858-80af-96c2-dc8ff25bd323" class="" dir="auto">9.2 Tải tài liệu và trích xuất (UC-09, UC-12)</h3><pre id="42372f78-9858-8007-ab66-f7feaf786822" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Sinh viên
+  participant UI as Desktop UI
+  participant API as MaterialController
+  participant SVC as MaterialService
+  participant FS as File storage
+  participant FP as File Processing
+  participant DB as MySQL
+  U-&gt;&gt;UI: Chọn file
+  UI-&gt;&gt;API: POST /courses/{id}/materials (multipart)
+  API-&gt;&gt;SVC: upload(file, topicId)
+  SVC-&gt;&gt;SVC: Kiểm tra quyền, loại file, dung lượng, tên file
+  SVC-&gt;&gt;FS: Lưu file
+  SVC-&gt;&gt;DB: Tạo material (UPLOADED)
+  SVC--&gt;&gt;API: material (EXTRACTING)
+  API--&gt;&gt;UI: 201
+  SVC-)FP: extract(materialId) bất đồng bộ
+  FP-&gt;&gt;FS: Đọc file
+  FP-&gt;&gt;FP: Parse, làm sạch, chia chunk
+  alt Có văn bản
+    FP-&gt;&gt;DB: Lưu chunk và số trang, material = EXTRACTED
+  else Không có văn bản
+    FP-&gt;&gt;DB: material = FAILED
+  end
+  UI-&gt;&gt;API: GET /materials/{id} (hỏi lại trạng thái)
+  API--&gt;&gt;UI: EXTRACTED hoặc FAILED</code></pre><h3 id="42372f78-9858-80c2-b573-c4e3f05012f9" class="" dir="auto">9.3 Tóm tắt tài liệu bất đồng bộ (UC-13)</h3><pre id="42372f78-9858-8002-9995-ce7d1cef42a1" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Sinh viên
+  participant UI as Desktop UI
+  participant API as AiController
+  participant SVC as AiService
+  participant W as AI Job Worker
+  participant AIP as AI Provider
+  participant DB as MySQL
+  U-&gt;&gt;UI: Chọn tài liệu, độ dài
+  UI-&gt;&gt;API: POST /ai/summaries
+  API-&gt;&gt;SVC: createSummaryJob(request)
+  SVC-&gt;&gt;DB: Kiểm tra quyền, tạo ai_job PENDING
+  API--&gt;&gt;UI: 202 jobId
+  loop Cho đến khi xong
+    UI-&gt;&gt;API: GET /ai/jobs/{jobId}
+    API--&gt;&gt;UI: PENDING hoặc RUNNING
+  end
+  W-&gt;&gt;DB: Nhận job, đọc chunk (không giữ transaction khi gọi AI)
+  W-&gt;&gt;AIP: Prompt tóm tắt
+  alt Lỗi hoặc timeout
+    W-&gt;&gt;W: Thử lại có backoff, tối đa 2 lần
+    W-&gt;&gt;DB: Hết lượt thì job FAILED
+  else Thành công
+    W-&gt;&gt;W: Kiểm tra đầu ra
+    W-&gt;&gt;DB: Lưu ai_summary kèm model, prompt_version; job SUCCEEDED
+    W-)UI: Sự kiện /user/queue/ai-jobs
+  end
+  UI-&gt;&gt;API: GET /ai/summaries/{id}
+  API--&gt;&gt;UI: Nội dung tóm tắt
+  UI--&gt;&gt;U: Hiển thị</code></pre><h3 id="42372f78-9858-8005-9d8e-e9a586ba9abe" class="" dir="auto">9.4 Hỏi đáp theo tài liệu có trích nguồn (UC-15)</h3><pre id="42372f78-9858-8040-bc7f-d08f8c28e769" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Sinh viên
+  participant UI as Desktop UI
+  participant API as AiController
+  participant R as Retriever
+  participant AIP as AI Provider
+  participant DB as MySQL
+  U-&gt;&gt;UI: Nhập câu hỏi, chọn tài liệu
+  UI-&gt;&gt;API: POST /ai/chats/{id}/messages
+  API-&gt;&gt;DB: Lưu câu hỏi, kiểm tra quyền tài liệu
+  API-&gt;&gt;R: Tìm đoạn liên quan (từ khóa; embedding ở Phase 5)
+  R-&gt;&gt;DB: Truy vấn chunk
+  R--&gt;&gt;API: Top-k chunk kèm trang
+  alt Không có đoạn đủ liên quan
+    API-&gt;&gt;DB: Lưu trả lời cố định, grounded = false
+    API--&gt;&gt;UI: Tài liệu hiện tại chưa có thông tin để kết luận
+  else Có ngữ cảnh
+    API-&gt;&gt;AIP: Prompt giới hạn ngữ cảnh, yêu cầu tách phần trong tài liệu và phần AI giải thích thêm
+    AIP--&gt;&gt;API: Câu trả lời
+    API-&gt;&gt;DB: Lưu trả lời, nguồn (material, trang, chunk), model, prompt_version
+    API--&gt;&gt;UI: Trả lời kèm nguồn
+  end
+  UI--&gt;&gt;U: Hiển thị, nút Báo câu trả lời sai</code></pre><h3 id="42372f78-9858-8006-87f2-c8388df28095" class="" dir="auto">9.5 Nộp quiz và chấm điểm (UC-20)</h3><pre id="42372f78-9858-802c-946f-d800342856c2" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Sinh viên
+  participant UI as Desktop UI
+  participant API as QuizController
+  participant SVC as AttemptService
+  participant DB as MySQL
+  U-&gt;&gt;UI: Bấm Nộp bài
+  UI-&gt;&gt;API: POST /quizzes/{id}/attempts/{aid}/submit + Idempotency-Key
+  API-&gt;&gt;SVC: submit(attemptId, answers)
+  SVC-&gt;&gt;DB: Khóa lượt làm theo version, kiểm tra thuộc người dùng, chưa nộp
+  alt Đã nộp (cùng khóa)
+    SVC--&gt;&gt;API: Kết quả đã lưu
+  else Lượt hợp lệ
+    SVC-&gt;&gt;DB: Đọc đáp án đúng đã lưu
+    SVC-&gt;&gt;SVC: Chấm điểm phía máy chủ
+    SVC-&gt;&gt;DB: Lưu attempt_answer, điểm, submitted_at, trạng thái SUBMITTED
+    SVC--&gt;&gt;API: Điểm, chi tiết, giải thích
+  end
+  API--&gt;&gt;UI: 200
+  UI--&gt;&gt;U: Hiển thị kết quả</code></pre><h3 id="42372f78-9858-8089-8636-d4568ff39863" class="" dir="auto">9.6 Tham gia lớp: gửi yêu cầu và duyệt (UC-29, UC-30)</h3><pre id="42372f78-9858-80c7-ba4a-d5b9a01e8ad4" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor S as Sinh viên
+  actor T as Giảng viên
+  participant API as ClassController
+  participant SVC as ClassService
+  participant DB as MySQL
+  participant NW as Notification Worker
+  S-&gt;&gt;API: POST /classes/join-requests {code}
+  API-&gt;&gt;SVC: requestJoin(code)
+  SVC-&gt;&gt;DB: Tìm lớp theo mã, kiểm tra trạng thái lớp
+  SVC-&gt;&gt;DB: INSERT join_request PENDING + outbox (một transaction)
+  API--&gt;&gt;S: 201 đang chờ duyệt
+  NW-&gt;&gt;DB: Đọc outbox
+  NW-)T: Thông báo có yêu cầu mới
+  T-&gt;&gt;API: PUT /classes/{id}/join-requests/{reqId} {APPROVED}
+  API-&gt;&gt;SVC: decide(reqId)
+  SVC-&gt;&gt;SVC: Kiểm tra giảng viên thuộc lớp
+  SVC-&gt;&gt;DB: Cập nhật yêu cầu, thêm class_member, thêm vào phòng chat lớp, ghi outbox
+  API--&gt;&gt;T: 200
+  NW-)S: Thông báo đã được duyệt</code></pre><h3 id="42372f78-9858-8098-8604-e29ec2bd4857" class="" dir="auto">9.7 Nộp bài tập đúng hạn hoặc muộn (UC-36)</h3><pre id="42372f78-9858-8069-a8d6-d928fd6be979" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor S as Sinh viên
+  participant UI as Desktop UI
+  participant API as SubmissionController
+  participant SVC as SubmissionService
+  participant FS as File storage
+  participant DB as MySQL
+  S-&gt;&gt;UI: Chọn file, bấm Nộp
+  UI-&gt;&gt;API: POST /assignments/{id}/submissions + Idempotency-Key
+  API-&gt;&gt;SVC: submit(assignmentId, file)
+  SVC-&gt;&gt;SVC: Kiểm tra thành viên lớp, loại và dung lượng file
+  SVC-&gt;&gt;FS: Lưu file (ngoài transaction DB)
+  SVC-&gt;&gt;DB: Bắt đầu transaction
+  SVC-&gt;&gt;DB: Đọc hạn nộp, so với giờ máy chủ
+  alt Quá hạn và không cho nộp muộn
+    SVC--&gt;&gt;API: ASSIGNMENT_CLOSED (422)
+  else Hợp lệ
+    SVC-&gt;&gt;DB: INSERT submission (unique assignment_id, student_id), is_late
+    SVC-&gt;&gt;DB: INSERT outbox cho giảng viên
+    SVC-&gt;&gt;DB: Commit
+    SVC--&gt;&gt;API: SUBMITTED
+  end
+  Note over SVC,DB: Hai request song song: một request vi phạm unique constraint và nhận 409
+  API--&gt;&gt;UI: Kết quả và trạng thái</code></pre><h3 id="42372f78-9858-8099-bfb2-df4d1e0e2379" class="" dir="auto">9.8 Gửi tin nhắn thời gian thực (UC-51, UC-52)</h3><pre id="42372f78-9858-8020-bc35-db18b92847fe" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor A as Người gửi
+  actor B as Người nhận
+  participant UIA as UI người gửi
+  participant WS as WebSocket / STOMP
+  participant SVC as ChatService
+  participant DB as MySQL
+  participant UIB as UI người nhận
+  A-&gt;&gt;UIA: Gõ tin nhắn
+  UIA-&gt;&gt;WS: SEND /app/conversations/{id}/messages {clientMessageId}
+  WS-&gt;&gt;SVC: handle(message, principal)
+  SVC-&gt;&gt;DB: Kiểm tra là thành viên cuộc trò chuyện
+  SVC-&gt;&gt;DB: INSERT message (unique conversation, sender, clientMessageId)
+  SVC--&gt;&gt;WS: Tin đã lưu (SENT)
+  WS--&gt;&gt;UIA: Xác nhận đã gửi
+  WS-)UIB: /topic/conversations/{id}
+  UIB--&gt;&gt;B: Hiển thị tin mới
+  B-&gt;&gt;WS: Đánh dấu đã đọc đến messageId
+  WS-&gt;&gt;DB: Cập nhật message_read_state theo mốc
+  Note over UIB,DB: Mất kết nối: UI tự nối lại và tải bù qua GET /conversations/{id}/messages?cursor=</code></pre><h3 id="42372f78-9858-8087-9835-ccd2291d428c" class="" dir="auto">9.9 Đồng bộ lịch Google, chỉ đọc (UC-46)</h3><pre id="42372f78-9858-8092-83d9-c51dc62c2b63" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">sequenceDiagram
+  autonumber
+  actor U as Người dùng
+  participant UI as Desktop UI
+  participant API as IntegrationController
+  participant SVC as GoogleSyncService
+  participant G as Google OAuth / Calendar API
+  participant DB as MySQL
+  U-&gt;&gt;UI: Bấm Kết nối Google Calendar
+  UI-&gt;&gt;API: GET /integrations/google/authorize
+  API-&gt;&gt;SVC: Kiểm tra chính sách (tài khoản cá nhân cần Admin cho phép)
+  API--&gt;&gt;UI: URL cấp quyền, scope chỉ đọc
+  UI-&gt;&gt;G: Mở trình duyệt, người dùng đồng ý
+  G--&gt;&gt;API: GET /integrations/google/callback?code=
+  API-&gt;&gt;G: Đổi code lấy token
+  API-&gt;&gt;DB: Lưu refresh token đã mã hóa
+  U-&gt;&gt;UI: Bấm Đồng bộ
+  UI-&gt;&gt;API: POST /integrations/google/sync
+  SVC-&gt;&gt;G: Đọc sự kiện lịch
+  alt Lỗi API hoặc hết quyền
+    SVC--&gt;&gt;API: GOOGLE_API_ERROR
+  else Thành công
+    SVC-&gt;&gt;DB: Upsert sự kiện (source = GOOGLE, external_id), không ghi ngược lên Google
+  end
+  API--&gt;&gt;UI: Kết quả đồng bộ</code></pre><h2 id="42372f78-9858-801b-8530-fd5b6102549a" class="" dir="auto">10. Thiết kế dữ liệu (ERD)</h2><p id="42372f78-9858-80fe-920b-ed3498861705" class="" dir="auto">MySQL, khóa chính <code>id</code> kiểu BIGINT (hoặc UUID cho <code>ai_job</code>). Mọi bảng có <code>created_at</code>, <code>updated_at</code>; bảng có thể cập nhật đồng thời có <code>version</code>. Thời gian lưu UTC. ERD chia thành sáu nhóm; <code>user</code> xuất hiện ở nhiều nhóm làm điểm nối.</p><h3 id="42372f78-9858-800e-bb49-d846f8bb6791" class="" dir="auto">10.1 Định danh, khóa học, tài liệu</h3><pre id="42372f78-9858-803f-b765-c47bf7327159" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  USER ||--o{ REFRESH_TOKEN : has
+  USER ||--o{ COURSE : owns
+  COURSE ||--o{ CHAPTER : contains
+  CHAPTER ||--o{ TOPIC : contains
+  COURSE ||--o{ MATERIAL : holds
+  TOPIC |o--o{ MATERIAL : classifies
+  USER ||--o{ MATERIAL : uploads
+  MATERIAL ||--o{ MATERIAL_CHUNK : split_into
+  USER {
+    bigint id PK
+    string email UK
+    string password_hash
+    string full_name
+    string role &quot;STUDENT, TEACHER, ADMIN&quot;
+    string status &quot;ACTIVE, LOCKED&quot;
+    string avatar_url
+    int failed_login_count
+    datetime locked_until
+    int version
+  }
+  REFRESH_TOKEN {
+    bigint id PK
+    bigint user_id FK
+    string token_hash UK
+    datetime expires_at
+    datetime revoked_at
+  }
+  COURSE {
+    bigint id PK
+    bigint owner_id FK
+    string name
+    string description
+    int version
+  }
+  CHAPTER {
+    bigint id PK
+    bigint course_id FK
+    string title
+    int position
+  }
+  TOPIC {
+    bigint id PK
+    bigint chapter_id FK
+    string title
+    int position
+  }
+  MATERIAL {
+    bigint id PK
+    bigint course_id FK
+    bigint topic_id FK
+    bigint owner_id FK
+    string file_name
+    string stored_path
+    string mime_type
+    bigint size_bytes
+    string category
+    string status &quot;UPLOADED, EXTRACTING, EXTRACTED, FAILED&quot;
+    int page_count
+    string content_hash
+  }
+  MATERIAL_CHUNK {
+    bigint id PK
+    bigint material_id FK
+    int chunk_index
+    int page_from
+    int page_to
+    text content
+    int token_count
+  }</code></pre><h3 id="42372f78-9858-807a-b09e-d6cc69d4fb17" class="" dir="auto">10.2 AI, quiz, flashcard</h3><pre id="42372f78-9858-8076-a388-f1cbf7862465" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  USER ||--o{ AI_JOB : requests
+  USER ||--o{ AI_CHAT : starts
+  AI_CHAT ||--o{ AI_CHAT_MESSAGE : has
+  AI_CHAT_MESSAGE ||--o{ AI_MESSAGE_SOURCE : cites
+  MATERIAL_CHUNK ||--o{ AI_MESSAGE_SOURCE : referenced_by
+  MATERIAL ||--o{ AI_SUMMARY : summarized_in
+  USER ||--o{ AI_FEEDBACK : reports
+  USER ||--o{ QUIZ : owns
+  QUIZ ||--o{ QUESTION : has
+  QUESTION ||--o{ QUESTION_OPTION : has
+  QUIZ }o--o{ MATERIAL : built_from
+  TOPIC |o--o{ QUESTION : tags
+  QUIZ ||--o{ QUIZ_ATTEMPT : attempted_as
+  USER ||--o{ QUIZ_ATTEMPT : takes
+  QUIZ_ATTEMPT ||--o{ ATTEMPT_ANSWER : records
+  QUESTION ||--o{ ATTEMPT_ANSWER : answered_in
+  USER ||--o{ FLASHCARD_DECK : owns
+  FLASHCARD_DECK ||--o{ FLASHCARD : has
+  FLASHCARD ||--o{ FLASHCARD_REVIEW : reviewed_in
+  AI_JOB {
+    uuid id PK
+    bigint user_id FK
+    string type &quot;SUMMARY, EXPLAIN, QUIZ, FLASHCARD, PLAN&quot;
+    string status &quot;PENDING, RUNNING, SUCCEEDED, FAILED, CANCELLED&quot;
+    json input_json
+    string result_type
+    bigint result_id
+    string error_code
+    int attempts
+    datetime finished_at
+  }
+  AI_SUMMARY {
+    bigint id PK
+    bigint material_id FK
+    bigint user_id FK
+    string length &quot;SHORT, MEDIUM, DETAILED&quot;
+    text content
+    string model
+    string prompt_version
+  }
+  AI_CHAT {
+    bigint id PK
+    bigint user_id FK
+    string title
+  }
+  AI_CHAT_MESSAGE {
+    bigint id PK
+    bigint chat_id FK
+    string role &quot;USER, ASSISTANT&quot;
+    text content
+    boolean grounded
+    text ai_added_note
+    string model
+    string prompt_version
+  }
+  AI_MESSAGE_SOURCE {
+    bigint id PK
+    bigint message_id FK
+    bigint material_id FK
+    bigint chunk_id FK
+    int page
+  }
+  AI_FEEDBACK {
+    bigint id PK
+    bigint user_id FK
+    string target_type
+    bigint target_id
+    string reason
+    string status &quot;OPEN, RESOLVED&quot;
+  }
+  QUIZ {
+    bigint id PK
+    bigint owner_id FK
+    bigint course_id FK
+    string title
+    string difficulty
+    int question_count
+    uuid source_job_id FK
+    string model
+    string prompt_version
+  }
+  QUESTION {
+    bigint id PK
+    bigint quiz_id FK
+    bigint topic_id FK
+    int position
+    text content
+    string type &quot;SINGLE_CHOICE, MULTI_CHOICE&quot;
+    text explanation
+    bigint source_chunk_id FK
+  }
+  QUESTION_OPTION {
+    bigint id PK
+    bigint question_id FK
+    string label
+    text content
+    boolean is_correct
+  }
+  QUIZ_ATTEMPT {
+    bigint id PK
+    bigint quiz_id FK
+    bigint user_id FK
+    bigint test_id FK
+    string status &quot;IN_PROGRESS, SUBMITTED, EXPIRED&quot;
+    datetime started_at
+    datetime deadline_at
+    datetime submitted_at
+    int duration_seconds
+    decimal score
+    decimal max_score
+    string idempotency_key UK
+    int version
+  }
+  ATTEMPT_ANSWER {
+    bigint id PK
+    bigint attempt_id FK
+    bigint question_id FK
+    json selected_option_ids
+    boolean is_correct
+  }
+  FLASHCARD_DECK {
+    bigint id PK
+    bigint owner_id FK
+    bigint course_id FK
+    string title
+  }
+  FLASHCARD {
+    bigint id PK
+    bigint deck_id FK
+    text front
+    text back
+    bigint source_chunk_id FK
+  }
+  FLASHCARD_REVIEW {
+    bigint id PK
+    bigint card_id FK
+    bigint user_id FK
+    string rating &quot;FORGOT, HARD, OK, EASY&quot;
+    datetime next_review_at
+  }</code></pre><h3 id="42372f78-9858-8062-abfb-c3ae6dcc61b5" class="" dir="auto">10.3 Lớp học, bài tập, bài kiểm tra</h3><pre id="42372f78-9858-8019-a1dc-cb0259dffac3" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  USER ||--o{ CLASSROOM : owns
+  CLASSROOM ||--o{ CLASS_MEMBER : has
+  USER ||--o{ CLASS_MEMBER : joins_as
+  CLASSROOM ||--o{ CLASS_JOIN_REQUEST : receives
+  USER ||--o{ CLASS_JOIN_REQUEST : sends
+  CLASSROOM ||--o{ CLASS_POST : shows
+  CLASSROOM ||--o{ CLASS_MATERIAL : shares
+  CLASSROOM ||--o{ ASSIGNMENT : gives
+  ASSIGNMENT ||--o{ ASSIGNMENT_ATTACHMENT : attaches
+  ASSIGNMENT ||--o{ SUBMISSION : receives
+  USER ||--o{ SUBMISSION : submits
+  SUBMISSION ||--o{ SUBMISSION_FILE : contains
+  CLASSROOM ||--o{ CLASS_TEST : schedules
+  QUIZ ||--o{ CLASS_TEST : used_by
+  CLASS_TEST ||--o{ QUIZ_ATTEMPT : attempted_as
+  CLASSROOM {
+    bigint id PK
+    string code UK
+    string name
+    text description
+    string subject
+    string avatar_url
+    datetime start_at
+    datetime end_at
+    string status &quot;OPEN, CLOSED, ARCHIVED&quot;
+    bigint owner_id FK
+    int version
+  }
+  CLASS_MEMBER {
+    bigint id PK
+    bigint class_id FK
+    bigint user_id FK
+    string class_role &quot;OWNER_TEACHER, CO_TEACHER, STUDENT&quot;
+    string status &quot;ACTIVE, LEFT, REMOVED&quot;
+    datetime joined_at
+  }
+  CLASS_JOIN_REQUEST {
+    bigint id PK
+    bigint class_id FK
+    bigint student_id FK
+    string status &quot;PENDING, APPROVED, REJECTED&quot;
+    bigint decided_by FK
+    datetime decided_at
+  }
+  CLASS_POST {
+    bigint id PK
+    bigint class_id FK
+    bigint author_id FK
+    string title
+    text content
+    boolean pinned
+  }
+  CLASS_MATERIAL {
+    bigint id PK
+    bigint class_id FK
+    bigint uploader_id FK
+    string file_name
+    string stored_path
+    string mime_type
+    bigint size_bytes
+  }
+  ASSIGNMENT {
+    bigint id PK
+    bigint class_id FK
+    bigint creator_id FK
+    string title
+    text instructions
+    decimal max_score
+    datetime open_at
+    datetime due_at
+    boolean allow_late
+    int max_submissions
+    int version
+  }
+  ASSIGNMENT_ATTACHMENT {
+    bigint id PK
+    bigint assignment_id FK
+    string file_name
+    string stored_path
+  }
+  SUBMISSION {
+    bigint id PK
+    bigint assignment_id FK
+    bigint student_id FK
+    text text_answer
+    string status &quot;SUBMITTED, GRADED, RETURNED&quot;
+    boolean is_late
+    datetime submitted_at
+    decimal score
+    text feedback
+    bigint graded_by FK
+    datetime graded_at
+    string idempotency_key
+    int version
+  }
+  SUBMISSION_FILE {
+    bigint id PK
+    bigint submission_id FK
+    string file_name
+    string stored_path
+    bigint size_bytes
+  }
+  CLASS_TEST {
+    bigint id PK
+    bigint class_id FK
+    bigint quiz_id FK
+    string title
+    datetime start_at
+    datetime end_at
+    int duration_minutes
+    int max_attempts
+    boolean shuffle_questions
+  }</code></pre><h3 id="42372f78-9858-8067-9590-e512dfe95835" class="" dir="auto">10.4 Lịch, tích hợp Google, mục tiêu và kế hoạch</h3><pre id="42372f78-9858-806d-8e91-c8c994809d21" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  USER ||--o{ EVENT : creates
+  CLASSROOM |o--o{ EVENT : hosts
+  USER ||--o{ CALENDAR_IMPORT : imports
+  CALENDAR_IMPORT |o--o{ EVENT : produces
+  USER ||--o| EXTERNAL_ACCOUNT : links
+  USER ||--o{ GOAL : sets
+  GOAL ||--o{ TASK : splits_into
+  USER ||--o{ TASK : owns
+  USER ||--o{ STUDY_PLAN : receives
+  STUDY_PLAN ||--o{ STUDY_PLAN_ITEM : proposes
+  STUDY_PLAN_ITEM |o--o| TASK : accepted_as
+  EVENT {
+    bigint id PK
+    bigint owner_id FK
+    bigint class_id FK
+    bigint import_id FK
+    string type &quot;CLASS, TEST, MEETING, PERSONAL&quot;
+    string title
+    text description
+    datetime start_at
+    datetime end_at
+    string timezone
+    string status &quot;UPCOMING, ONGOING, ENDED, CANCELLED&quot;
+    string meeting_url
+    string source &quot;MANUAL, ICS, CSV, GOOGLE&quot;
+    string external_id
+    int version
+  }
+  CALENDAR_IMPORT {
+    bigint id PK
+    bigint user_id FK
+    string source_type &quot;ICS, CSV&quot;
+    string file_name
+    string timezone
+    string status &quot;PREVIEW, CONFIRMED, CANCELLED&quot;
+  }
+  EXTERNAL_ACCOUNT {
+    bigint id PK
+    bigint user_id FK
+    string provider
+    string scopes
+    text refresh_token_encrypted
+    datetime connected_at
+    datetime last_synced_at
+  }
+  GOAL {
+    bigint id PK
+    bigint user_id FK
+    string title
+    string subject
+    date due_date
+    string priority &quot;LOW, MEDIUM, HIGH&quot;
+    string status
+    json free_time
+  }
+  TASK {
+    bigint id PK
+    bigint user_id FK
+    bigint goal_id FK
+    string title
+    date task_date
+    string priority
+    string status &quot;TODO, DONE, MISSED&quot;
+    datetime remind_at
+  }
+  STUDY_PLAN {
+    bigint id PK
+    bigint user_id FK
+    uuid job_id FK
+    string status &quot;PROPOSED, PARTIAL, CLOSED&quot;
+    string rationale
+    string model
+    string prompt_version
+  }
+  STUDY_PLAN_ITEM {
+    bigint id PK
+    bigint plan_id FK
+    string title
+    datetime planned_start
+    datetime planned_end
+    string decision &quot;PENDING, ACCEPTED, EDITED, REJECTED&quot;
+  }</code></pre><h3 id="42372f78-9858-8050-90d3-e88bda71b37f" class="" dir="auto">10.5 Chat và thông báo</h3><pre id="42372f78-9858-8059-9714-dbb5b8567014" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  CLASSROOM |o--o| CONVERSATION : has_room
+  CONVERSATION ||--o{ CONVERSATION_MEMBER : has
+  USER ||--o{ CONVERSATION_MEMBER : joins
+  CONVERSATION ||--o{ MESSAGE : contains
+  USER ||--o{ MESSAGE : sends
+  CONVERSATION ||--o{ MESSAGE_READ_STATE : tracks
+  USER ||--o{ MESSAGE_READ_STATE : owns
+  MESSAGE ||--o{ ATTACHMENT : has
+  USER ||--o{ NOTIFICATION : receives
+  USER ||--o{ NOTIFICATION_SETTING : configures
+  USER ||--o{ NOTIFICATION_OUTBOX : is_recipient_of
+  CONVERSATION {
+    bigint id PK
+    string type &quot;CLASSROOM, DIRECT&quot;
+    bigint class_id FK
+    string direct_key UK
+  }
+  CONVERSATION_MEMBER {
+    bigint id PK
+    bigint conversation_id FK
+    bigint user_id FK
+    datetime joined_at
+    datetime left_at
+  }
+  MESSAGE {
+    bigint id PK
+    bigint conversation_id FK
+    bigint sender_id FK
+    text content
+    string status &quot;SENT, DELIVERED&quot;
+    string client_message_id
+    datetime created_at
+  }
+  MESSAGE_READ_STATE {
+    bigint id PK
+    bigint conversation_id FK
+    bigint user_id FK
+    bigint last_read_message_id
+    datetime updated_at
+  }
+  ATTACHMENT {
+    bigint id PK
+    bigint message_id FK
+    string file_name
+    string stored_path
+  }
+  NOTIFICATION {
+    bigint id PK
+    bigint user_id FK
+    string type
+    string title
+    string body
+    string target_type
+    bigint target_id
+    datetime read_at
+  }
+  NOTIFICATION_SETTING {
+    bigint id PK
+    bigint user_id FK
+    string type
+    boolean in_app_enabled
+    boolean email_enabled
+  }
+  NOTIFICATION_OUTBOX {
+    bigint id PK
+    bigint recipient_id FK
+    string event_type
+    string object_type
+    bigint object_id
+    string reminder_key
+    string channel &quot;IN_APP, EMAIL&quot;
+    json payload
+    string status &quot;PENDING, SENT, FAILED, SKIPPED&quot;
+    int attempts
+    datetime next_try_at
+    datetime sent_at
+  }</code></pre><h3 id="42372f78-9858-8030-ba05-c1f904d8f376" class="" dir="auto">10.6 Quản trị và hạ tầng</h3><pre id="42372f78-9858-80e5-a70d-d7f5e5c559ff" class="code code-wrap" data-notion-code-syntax="mermaid"><code class="language-mermaid" style="white-space:pre-wrap;word-break:break-all">erDiagram
+  USER ||--o{ REPORT : files
+  USER ||--o{ AUDIT_LOG : acts_in
+  USER ||--o{ IDEMPOTENCY_KEY : sends
+  REPORT {
+    bigint id PK
+    bigint reporter_id FK
+    string type
+    string target_type
+    bigint target_id
+    text detail
+    string status &quot;OPEN, RESOLVED&quot;
+    bigint handled_by FK
+  }
+  SYSTEM_SETTING {
+    string key PK
+    string value
+    bigint updated_by FK
+  }
+  AUDIT_LOG {
+    bigint id PK
+    bigint user_id FK
+    string action
+    string object_type
+    bigint object_id
+    datetime created_at
+  }
+  IDEMPOTENCY_KEY {
+    bigint id PK
+    bigint user_id FK
+    string idempotency_key
+    string endpoint
+    string response_hash
+    datetime expires_at
+  }</code></pre><h3 id="42372f78-9858-8036-960c-f0db5614f3c8" class="" dir="auto">10.7 Ràng buộc và chỉ mục quan trọng</h3><table id="42372f78-9858-80f7-88ac-f21632114e99" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="61072f78-9858-820a-8f91-0139603747ad" dir="ltr"><th id="VdY[" class="simple-table-header-color simple-table-header">Bảng</th><th id="VLb;" class="simple-table-header-color simple-table-header">Ràng buộc duy nhất / chỉ mục</th><th id="=;;O" class="simple-table-header-color simple-table-header">Mục đích</th></tr></thead><tbody><tr id="8dc72f78-9858-8234-b0e1-01c39a8f0996" dir="ltr"><td id="VdY[" class=""><code>user</code></td><td id="VLb;" class="">UNIQUE (<code>email</code>)</td><td id="=;;O" class="">Không trùng tài khoản</td></tr><tr id="19972f78-9858-836c-a148-0138568ecbba" dir="ltr"><td id="VdY[" class=""><code>classroom</code></td><td id="VLb;" class="">UNIQUE (<code>code</code>)</td><td id="=;;O" class="">Mã lớp duy nhất</td></tr><tr id="4ec72f78-9858-82f3-a2c1-01cc2e1d111e" dir="ltr"><td id="VdY[" class=""><code>class_member</code></td><td id="VLb;" class="">UNIQUE (<code>class_id</code>, <code>user_id</code>)</td><td id="=;;O" class="">Một người một vai trong lớp</td></tr><tr id="2d472f78-9858-828d-b067-8187998bcb4c" dir="ltr"><td id="VdY[" class=""><code>class_join_request</code></td><td id="VLb;" class="">UNIQUE (<code>class_id</code>, <code>student_id</code>) với trạng thái PENDING</td><td id="=;;O" class="">Không gửi lặp yêu cầu</td></tr><tr id="5f472f78-9858-82f5-84dc-81bfabeb1a80" dir="ltr"><td id="VdY[" class=""><code>submission</code></td><td id="VLb;" class="">UNIQUE (<code>assignment_id</code>, <code>student_id</code>)</td><td id="=;;O" class="">Một lượt nộp hợp lệ (D-02); mở lại nộp thì cập nhật cùng bản ghi</td></tr><tr id="04c72f78-9858-83e0-8884-01b729a5a795" dir="ltr"><td id="VdY[" class=""><code>quiz_attempt</code></td><td id="VLb;" class="">UNIQUE (<code>idempotency_key</code>); INDEX (<code>quiz_id</code>, <code>user_id</code>, <code>submitted_at</code>)</td><td id="=;;O" class="">Chống nộp lặp, tra lịch sử</td></tr><tr id="2b172f78-9858-83ea-8bc6-0101d5cb8f97" dir="ltr"><td id="VdY[" class=""><code>message</code></td><td id="VLb;" class="">UNIQUE (<code>conversation_id</code>, <code>sender_id</code>, <code>client_message_id</code>); INDEX (<code>conversation_id</code>, <code>id</code>)</td><td id="=;;O" class="">Chống gửi lặp, phân trang cursor</td></tr><tr id="48772f78-9858-8230-9ad8-0135252dd34c" dir="ltr"><td id="VdY[" class=""><code>message_read_state</code></td><td id="VLb;" class="">UNIQUE (<code>conversation_id</code>, <code>user_id</code>)</td><td id="=;;O" class="">Một mốc đọc cho mỗi người</td></tr><tr id="e0d72f78-9858-8209-9d05-81d3c6cd1a28" dir="ltr"><td id="VdY[" class=""><code>conversation</code></td><td id="VLb;" class="">UNIQUE (<code>direct_key</code>)</td><td id="=;;O" class="">Một chat 1-1 cho mỗi cặp người dùng</td></tr><tr id="56e72f78-9858-833f-82ee-01a543627227" dir="ltr"><td id="VdY[" class=""><code>notification_outbox</code></td><td id="VLb;" class="">UNIQUE (<code>recipient_id</code>, <code>event_type</code>, <code>object_id</code>, <code>reminder_key</code>, <code>channel</code>); INDEX (<code>status</code>, <code>next_try_at</code>)</td><td id="=;;O" class="">Chống thông báo trùng, worker quét hàng đợi</td></tr><tr id="e8b72f78-9858-8314-a302-01146e104ce1" dir="ltr"><td id="VdY[" class=""><code>notification</code></td><td id="VLb;" class="">INDEX (<code>user_id</code>, <code>read_at</code>, <code>id</code>)</td><td id="=;;O" class="">Đếm chưa đọc, phân trang</td></tr><tr id="e3b72f78-9858-8287-ba17-0157639bf3af" dir="ltr"><td id="VdY[" class=""><code>material_chunk</code></td><td id="VLb;" class="">UNIQUE (<code>material_id</code>, <code>chunk_index</code>)</td><td id="=;;O" class="">Thứ tự đoạn</td></tr><tr id="88072f78-9858-8353-857d-01fd38f66534" dir="ltr"><td id="VdY[" class=""><code>event</code></td><td id="VLb;" class="">INDEX (<code>owner_id</code>, <code>start_at</code>); UNIQUE (<code>owner_id</code>, <code>source</code>, <code>external_id</code>)</td><td id="=;;O" class="">Xem lịch theo khoảng, đồng bộ Google không nhân đôi</td></tr><tr id="41472f78-9858-835c-9b1c-8111e440c67b" dir="ltr"><td id="VdY[" class=""><code>ai_job</code></td><td id="VLb;" class="">INDEX (<code>status</code>, <code>created_at</code>); INDEX (<code>user_id</code>, <code>created_at</code>)</td><td id="=;;O" class="">Worker lấy job, liệt kê job</td></tr></tbody></table><p id="42372f78-9858-80ca-b8c5-ce9718454345" class="" dir="auto">Quy ước xóa: khóa học, tài liệu và quiz dùng xóa mềm (<code>deleted_at</code>) để giữ lịch sử điểm; thành viên rời lớp đổi <code>status</code> chứ không xóa dòng, để giữ bài nộp và tin nhắn theo chính sách lưu trữ.</p><h2 id="42372f78-9858-8043-a3e3-d3a16aa61e6d" class="" dir="auto">11. Ma trận truy vết</h2><table id="42372f78-9858-8043-acd4-fceac13a0ef5" class="simple-table" dir="ltr"><thead class="simple-table-header"><tr id="23a72f78-9858-823a-a90a-013a7d30b00d" dir="ltr"><th id="mUDQ" class="simple-table-header-color simple-table-header">FR</th><th id="}tp}" class="simple-table-header-color simple-table-header">Module</th><th id="yMFJ" class="simple-table-header-color simple-table-header">Nhóm API</th><th id="^ClU" class="simple-table-header-color simple-table-header">Sơ đồ liên quan</th><th id="Y[sG" class="simple-table-header-color simple-table-header">Bảng chính</th></tr></thead><tbody><tr id="98172f78-9858-83f1-b691-81da002d6b02" dir="ltr"><td id="mUDQ" class="">FR-01</td><td id="}tp}" class="">identity</td><td id="yMFJ" class="">5.1</td><td id="^ClU" class="">9.1</td><td id="Y[sG" class=""><code>user</code>, <code>refresh_token</code></td></tr><tr id="18372f78-9858-8268-8066-01964df39002" dir="ltr"><td id="mUDQ" class="">FR-02</td><td id="}tp}" class="">learning</td><td id="yMFJ" class="">5.2</td><td id="^ClU" class="">7.1</td><td id="Y[sG" class=""><code>course</code>, <code>chapter</code>, <code>topic</code></td></tr><tr id="7b872f78-9858-83dd-99aa-81f4c448060a" dir="ltr"><td id="mUDQ" class="">FR-03</td><td id="}tp}" class="">learning</td><td id="yMFJ" class="">5.3</td><td id="^ClU" class="">8.1, 9.2</td><td id="Y[sG" class=""><code>material</code>, <code>material_chunk</code></td></tr><tr id="7dd72f78-9858-828e-851f-0138b7ad6624" dir="ltr"><td id="mUDQ" class="">FR-04</td><td id="}tp}" class="">ai</td><td id="yMFJ" class="">5.4</td><td id="^ClU" class="">8.2, 9.3</td><td id="Y[sG" class=""><code>ai_job</code>, <code>ai_summary</code></td></tr><tr id="f2d72f78-9858-835d-b6a1-812465e68409" dir="ltr"><td id="mUDQ" class="">FR-05</td><td id="}tp}" class="">ai</td><td id="yMFJ" class="">5.4</td><td id="^ClU" class="">9.4</td><td id="Y[sG" class=""><code>ai_chat</code>, <code>ai_chat_message</code>, <code>ai_message_source</code>, <code>ai_feedback</code></td></tr><tr id="25f72f78-9858-8288-91d9-01dbd80b21e7" dir="ltr"><td id="mUDQ" class="">FR-06, FR-07</td><td id="}tp}" class="">ai, learning</td><td id="yMFJ" class="">5.4, 5.5</td><td id="^ClU" class="">8.3, 9.5</td><td id="Y[sG" class=""><code>quiz</code>, <code>question</code>, <code>question_option</code>, <code>quiz_attempt</code>, <code>attempt_answer</code></td></tr><tr id="b9472f78-9858-821a-a835-81d873c6f240" dir="ltr"><td id="mUDQ" class="">FR-08</td><td id="}tp}" class="">learning</td><td id="yMFJ" class="">5.5</td><td id="^ClU" class="">7.1</td><td id="Y[sG" class=""><code>flashcard_deck</code>, <code>flashcard</code>, <code>flashcard_review</code></td></tr><tr id="fdb72f78-9858-82a8-9489-012bead78d35" dir="ltr"><td id="mUDQ" class="">FR-10, FR-21</td><td id="}tp}" class="">learning</td><td id="yMFJ" class="">5.6</td><td id="^ClU" class="">7.2</td><td id="Y[sG" class="">Tổng hợp từ <code>quiz_attempt</code>, <code>attempt_answer</code>, <code>task</code></td></tr><tr id="01772f78-9858-82e0-80bc-01977b4f04ed" dir="ltr"><td id="mUDQ" class="">FR-11</td><td id="}tp}" class="">identity</td><td id="yMFJ" class="">5.1, 5.11</td><td id="^ClU" class="">7.2</td><td id="Y[sG" class=""><code>user</code>, <code>class_member</code></td></tr><tr id="13372f78-9858-83e1-9909-817be47ad70c" dir="ltr"><td id="mUDQ" class="">FR-12</td><td id="}tp}" class="">classroom</td><td id="yMFJ" class="">5.7</td><td id="^ClU" class="">8.4, 9.6</td><td id="Y[sG" class=""><code>classroom</code>, <code>class_member</code>, <code>class_join_request</code>, <code>class_post</code>, <code>class_material</code></td></tr><tr id="12b72f78-9858-831d-8a20-8138d6ce9d9f" dir="ltr"><td id="mUDQ" class="">FR-13</td><td id="}tp}" class="">assignment</td><td id="yMFJ" class="">5.8</td><td id="^ClU" class="">8.5, 9.7</td><td id="Y[sG" class=""><code>assignment</code>, <code>submission</code>, <code>submission_file</code></td></tr><tr id="eb172f78-9858-83cc-a1b2-816df1345713" dir="ltr"><td id="mUDQ" class="">FR-14</td><td id="}tp}" class="">assignment</td><td id="yMFJ" class="">5.8</td><td id="^ClU" class="">7.2</td><td id="Y[sG" class=""><code>class_test</code>, <code>quiz_attempt</code></td></tr><tr id="aa872f78-9858-839c-8b0d-81858612e189" dir="ltr"><td id="mUDQ" class="">FR-15, FR-16</td><td id="}tp}" class="">schedule, meeting</td><td id="yMFJ" class="">5.9</td><td id="^ClU" class="">8.6, 9.9</td><td id="Y[sG" class=""><code>event</code>, <code>calendar_import</code>, <code>external_account</code></td></tr><tr id="90672f78-9858-8346-b190-81e9e381e4ec" dir="ltr"><td id="mUDQ" class="">FR-17</td><td id="}tp}" class="">schedule, ai</td><td id="yMFJ" class="">5.9</td><td id="^ClU" class="">7.3</td><td id="Y[sG" class=""><code>goal</code>, <code>task</code>, <code>study_plan</code>, <code>study_plan_item</code></td></tr><tr id="dcf72f78-9858-8249-a23f-81d5207a2f6f" dir="ltr"><td id="mUDQ" class="">FR-18</td><td id="}tp}" class="">chat</td><td id="yMFJ" class="">5.10</td><td id="^ClU" class="">9.8</td><td id="Y[sG" class=""><code>conversation</code>, <code>message</code>, <code>message_read_state</code></td></tr><tr id="ff172f78-9858-823b-ae61-01aeb68a5a91" dir="ltr"><td id="mUDQ" class="">FR-19</td><td id="}tp}" class="">notification</td><td id="yMFJ" class="">5.10</td><td id="^ClU" class="">8.7</td><td id="Y[sG" class=""><code>notification</code>, <code>notification_outbox</code>, <code>notification_setting</code></td></tr><tr id="a3472f78-9858-822b-8289-01bd260c84ad" dir="ltr"><td id="mUDQ" class="">FR-20</td><td id="}tp}" class="">assignment</td><td id="yMFJ" class="">5.6</td><td id="^ClU" class="">7.2</td><td id="Y[sG" class="">Tổng hợp từ <code>submission</code>, <code>quiz_attempt</code></td></tr></tbody></table><p id="42372f78-9858-805a-b449-dd85d240b3aa" class="" dir="auto">Các sơ đồ ở mục 7 đến 10 dùng cú pháp Mermaid: có thể sửa trực tiếp trong khối mã và dán vào công cụ vẽ khác khi cần.</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

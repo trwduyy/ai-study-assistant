@@ -1,6 +1,7 @@
 package com.aistudy.assistant.repository;
 
 import com.aistudy.assistant.entity.Quiz;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +16,9 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     List<Quiz> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     Optional<Quiz> findByIdAndUserId(Long id, Long userId);
+
+    @EntityGraph(attributePaths = {"questions"})
+    Optional<Quiz> findWithQuestionsByIdAndUserId(Long id, Long userId);
 
     long countByCourseId(Long courseId);
 

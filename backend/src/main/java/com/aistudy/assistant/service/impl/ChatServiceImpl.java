@@ -122,7 +122,9 @@ public class ChatServiceImpl implements ChatService {
     @Transactional(readOnly = true)
     public List<ChatMessageResponse> getSessionMessages(Long sessionId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        findSessionAndValidateOwnership(sessionId, currentUserId);
+        if (!chatSessionRepository.existsByIdAndUserId(sessionId, currentUserId)) {
+            throw new ResourceNotFoundException("ChatSession", "id", sessionId);
+        }
 
         List<ChatMessage> messages = chatMessageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
         return messages.stream()
@@ -134,7 +136,8 @@ public class ChatServiceImpl implements ChatService {
     @Transactional
     public ChatAnswerResponse sendMessage(Long sessionId, SendMessageRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        ChatSession session = findSessionAndValidateOwnership(sessionId, currentUserId);
+        ChatSession session = chatSessionRepository.findWithContextByIdAndUserId(sessionId, currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("ChatSession", "id", sessionId));
 
         // Fetch recent messages for conversational context before adding new user message
         List<ChatMessage> recentMessages = chatMessageRepository.findTop10BySessionIdOrderByCreatedAtDesc(sessionId);
