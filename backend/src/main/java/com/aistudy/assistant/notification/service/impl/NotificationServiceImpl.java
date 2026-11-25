@@ -47,7 +47,11 @@ public class NotificationServiceImpl implements NotificationService {
             "ASSIGNMENT_GRADED",
             "ASSIGNMENT_REOPENED",
             "ASSIGNMENT_DUE_SOON",
-            "CLASS_TEST_CREATED"
+            "CLASS_TEST_CREATED",
+            "CLASS_EVENT_CREATED",
+            "CLASS_EVENT_UPDATED",
+            "CLASS_EVENT_CANCELLED",
+            "EVENT_REMINDER_30M"
     );
 
     private final NotificationRepository notificationRepository;

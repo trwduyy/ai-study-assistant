@@ -1,6 +1,8 @@
 package com.aistudy.assistant.learning.service;
 
 import com.aistudy.assistant.assignment.repository.AssignmentRepository;
+import com.aistudy.assistant.classroom.repository.ClassMemberRepository;
+import com.aistudy.assistant.classroom.repository.ClassMemberRepository.ActiveClassRoleProjection;
 import com.aistudy.assistant.identity.security.SecurityUtils;
 import com.aistudy.assistant.learning.dto.AnalyticsOverviewResponse;
 import com.aistudy.assistant.learning.dto.FrequentMistakeResponse;
@@ -11,6 +13,7 @@ import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardOver
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DashboardReviewTopicSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.DueAssignmentSummary;
 import com.aistudy.assistant.learning.dto.StudentDashboardResponse.RecentAttemptSummary;
+import com.aistudy.assistant.learning.dto.StudentDashboardResponse.UpcomingEventSummary;
 import com.aistudy.assistant.learning.entity.AttemptStatus;
 import com.aistudy.assistant.learning.entity.Material;
 import com.aistudy.assistant.learning.entity.MaterialStatus;
@@ -21,6 +24,9 @@ import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository.OverviewStatsProjection;
 import com.aistudy.assistant.notification.repository.NotificationRepository;
+import com.aistudy.assistant.schedule.entity.Event;
+import com.aistudy.assistant.schedule.repository.EventRepository;
+import com.aistudy.assistant.schedule.service.EventValidationSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -46,6 +52,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final AttemptAnswerRepository attemptAnswerRepository;
     private final AssignmentRepository assignmentRepository;
     private final NotificationRepository notificationRepository;
+    private final ClassMemberRepository classMemberRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -124,9 +132,34 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 ))
                 .toList();
 
+        Instant now = Instant.now();
+        Instant sevenDaysLater = now.plus(Duration.ofDays(7));
+        List<Long> activeClassIds = classMemberRepository.findActiveClassRolesByUserId(userId).stream()
+                .map(ActiveClassRoleProjection::getClassId)
+                .distinct()
+                .toList();
+        List<Event> rawUpcomingEvents = activeClassIds.isEmpty()
+                ? eventRepository.findUpcomingOwnerEventsForDashboard(userId, now, sevenDaysLater, PageRequest.of(0, 10))
+                : eventRepository.findUpcomingCalendarEventsForDashboard(userId, activeClassIds, now, sevenDaysLater, PageRequest.of(0, 10));
+        List<UpcomingEventSummary> upcomingEvents = rawUpcomingEvents.stream()
+                .map(event -> new UpcomingEventSummary(
+                        event.getId(),
+                        event.getClassroom() != null ? event.getClassroom().getId() : null,
+                        event.getClassroom() != null ? event.getClassroom().getName() : null,
+                        event.getType(),
+                        event.getTitle(),
+                        event.getStartAt(),
+                        event.getEndAt(),
+                        event.getTimezone(),
+                        EventValidationSupport.computeEffectiveStatus(event, now),
+                        event.getMeetingUrl(),
+                        event.getSource()
+                ))
+                .toList();
+
         List<DueAssignmentSummary> dueAssignments = assignmentRepository.findUpcomingUnsubmittedForStudent(
                 userId,
-                Instant.now(),
+                now,
                 PageRequest.of(0, 5)
         );
         long unreadNotificationCount = notificationRepository.countByUserIdAndReadAtIsNull(userId);
@@ -140,7 +173,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 ),
                 recentAttempts,
                 reviewTopics,
-                List.of(),
+                upcomingEvents,
                 dueAssignments,
                 unreadNotificationCount,
                 List.of()

@@ -136,6 +136,22 @@ public class NotificationWorker {
                     "Bài kiểm tra mới trong lớp " + className,
                     "Giảng viên vừa tạo bài kiểm tra \"" + title + "\"."
             );
+            case "CLASS_EVENT_CREATED" -> new NotificationText(
+                    "Sự kiện mới trong lớp " + className,
+                    "Giảng viên vừa tạo sự kiện \"" + title + "\"."
+            );
+            case "CLASS_EVENT_UPDATED" -> new NotificationText(
+                    "Cập nhật lịch sự kiện lớp " + className,
+                    "Sự kiện \"" + title + "\" vừa được cập nhật thời gian hoặc thông tin."
+            );
+            case "CLASS_EVENT_CANCELLED" -> new NotificationText(
+                    "Hủy sự kiện lớp " + className,
+                    "Sự kiện \"" + title + "\" trong lớp " + className + " đã bị hủy."
+            );
+            case "EVENT_REMINDER_30M" -> new NotificationText(
+                    "Nhắc lịch sắp diễn ra",
+                    "Sự kiện \"" + title + "\" sẽ bắt đầu trong vòng 30 phút tới."
+            );
             default -> new NotificationText(
                     "Thông báo mới",
                     "Bạn có một thông báo mới (" + eventType + ")."

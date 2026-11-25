@@ -21,6 +21,29 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Long> 
 
     Optional<ClassMember> findByClassroomIdAndUserId(Long classId, Long userId);
 
+    interface ActiveClassRoleProjection {
+        Long getClassId();
+
+        ClassRole getClassRole();
+    }
+
+    @Query("""
+            SELECT cm.classroom.id AS classId, cm.classRole AS classRole
+            FROM ClassMember cm
+            WHERE cm.user.id = :userId
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+            """)
+    List<ActiveClassRoleProjection> findActiveClassRolesByUserId(@Param("userId") Long userId);
+
+    @Query("""
+            SELECT cm
+            FROM ClassMember cm
+            JOIN FETCH cm.user
+            WHERE cm.classroom.id IN :classIds
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+            """)
+    List<ClassMember> findActiveWithUserByClassIds(@Param("classIds") Collection<Long> classIds);
+
     @EntityGraph(attributePaths = {"classroom", "user"})
     Optional<ClassMember> findWithClassroomAndUserByClassroomIdAndUserId(Long classId, Long userId);
 
