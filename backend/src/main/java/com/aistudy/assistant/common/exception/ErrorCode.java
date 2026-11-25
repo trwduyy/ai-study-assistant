@@ -48,6 +48,9 @@ public enum ErrorCode {
     QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy câu hỏi."),
     CLASS_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lớp học."),
     CLASS_CODE_INVALID(HttpStatus.NOT_FOUND, "Mã lớp học không hợp lệ hoặc lớp đã đóng."),
+    JOIN_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu tham gia lớp học."),
+    CLASS_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài đăng trong lớp học."),
+    CLASS_MATERIAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu lớp học."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "Đường dẫn API không tồn tại."),
 
     // 405 Method Not Allowed
