@@ -1,11 +1,13 @@
 package com.aistudy.assistant.service;
 
+import com.aistudy.assistant.dto.quiz.AttemptDetailResponse;
 import com.aistudy.assistant.dto.quiz.GenerateQuizRequest;
 import com.aistudy.assistant.dto.quiz.QuestionAnswerSubmit;
 import com.aistudy.assistant.dto.quiz.QuizExamResponse;
 import com.aistudy.assistant.dto.quiz.QuizResponse;
 import com.aistudy.assistant.dto.quiz.QuizSubmitResultResponse;
 import com.aistudy.assistant.dto.quiz.SubmitQuizRequest;
+import com.aistudy.assistant.entity.AttemptAnswer;
 import com.aistudy.assistant.entity.Course;
 import com.aistudy.assistant.entity.Difficulty;
 import com.aistudy.assistant.entity.ExtractionStatus;
@@ -47,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -164,7 +167,7 @@ class QuizServiceTest {
                 ))
                 .build();
 
-        when(quizRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(mockQuiz));
+        when(quizRepository.findWithQuestionsByIdAndUserId(100L, 1L)).thenReturn(Optional.of(mockQuiz));
 
         when(quizAttemptRepository.save(any(QuizAttempt.class))).thenAnswer(invocation -> {
             QuizAttempt attempt = invocation.getArgument(0);
@@ -184,13 +187,13 @@ class QuizServiceTest {
         assertEquals(new BigDecimal("50.00"), response.getScore());
 
         verify(attemptAnswerRepository).saveAll(any());
-        verify(quizAttemptRepository).save(any(QuizAttempt.class));
+        verify(quizAttemptRepository, times(2)).save(any(QuizAttempt.class));
     }
 
     @Test
     @DisplayName("Exam detail must not leak correctOption or explanation to the test taker")
     void getQuizExamDetail_HidesCorrectOptionAndExplanation() {
-        when(quizRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(mockQuiz));
+        when(quizRepository.findWithQuestionsByIdAndUserId(100L, 1L)).thenReturn(Optional.of(mockQuiz));
 
         QuizExamResponse examDetail = quizService.getQuizExamDetail(100L);
 
@@ -202,6 +205,38 @@ class QuizServiceTest {
         // and cannot provide correctOption or explanation fields
         assertEquals("What does SQL stand for?", examDetail.getQuestions().get(0).getQuestionText());
         assertEquals("Structured Query Language", examDetail.getQuestions().get(0).getOptionB());
+    }
+
+    @Test
+    @DisplayName("Should retrieve attempt details with answers and explanations via optimized fetch")
+    void getAttemptDetail_ReturnsFullReview() {
+        QuizAttempt mockAttempt = QuizAttempt.builder()
+                .id(500L)
+                .quiz(mockQuiz)
+                .user(mockUser)
+                .score(new BigDecimal("50.00"))
+                .totalQuestions(2)
+                .correctCount(1)
+                .submittedAt(Instant.now())
+                .answers(List.of(
+                        AttemptAnswer.builder()
+                                .id(1L)
+                                .question(mockQuestions.get(0))
+                                .selectedOption(OptionLetter.B)
+                                .isCorrect(true)
+                                .build()
+                ))
+                .build();
+
+        when(quizAttemptRepository.findWithDetailsByIdAndUserId(500L, 1L)).thenReturn(Optional.of(mockAttempt));
+
+        AttemptDetailResponse detail = quizService.getAttemptDetail(500L);
+
+        assertNotNull(detail);
+        assertEquals(500L, detail.getAttemptId());
+        assertEquals("SQL Basics Quiz", detail.getQuizTitle());
+        assertEquals(1, detail.getAnswers().size());
+        assertEquals(OptionLetter.B, detail.getAnswers().get(0).getCorrectOption());
     }
 
     @Test

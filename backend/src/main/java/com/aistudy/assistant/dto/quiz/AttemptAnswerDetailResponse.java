@@ -2,6 +2,7 @@ package com.aistudy.assistant.dto.quiz;
 
 import com.aistudy.assistant.entity.AttemptAnswer;
 import com.aistudy.assistant.entity.OptionLetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class AttemptAnswerDetailResponse {
     private String optionD;
     private OptionLetter selectedOption;
     private OptionLetter correctOption;
+    @JsonProperty("isCorrect")
     private boolean isCorrect;
     private String explanation;
 

@@ -1,12 +1,10 @@
 package com.aistudy.assistant.entity;
 
+import com.aistudy.assistant.common.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -17,6 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -27,14 +26,10 @@ import java.util.List;
 @Table(name = "quiz_attempts")
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuizAttempt {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class QuizAttempt extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
@@ -62,12 +57,14 @@ public class QuizAttempt {
     private Instant submittedAt;
 
     @Builder.Default
-    @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AttemptAnswer> answers = new ArrayList<>();
 
     @PrePersist
-    protected void onCreate() {
-        this.startedAt = Instant.now();
+    protected void ensureDefaults() {
+        if (this.startedAt == null) {
+            this.startedAt = Instant.now();
+        }
         if (this.score == null) {
             this.score = BigDecimal.ZERO;
         }

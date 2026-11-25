@@ -1,6 +1,7 @@
 package com.aistudy.assistant.repository;
 
 import com.aistudy.assistant.entity.ChatSession;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +16,9 @@ public interface ChatSessionRepository extends JpaRepository<ChatSession, Long> 
     List<ChatSession> findByUserIdAndCourseIdOrderByUpdatedAtDesc(Long userId, Long courseId);
 
     Optional<ChatSession> findByIdAndUserId(Long id, Long userId);
+
+    @EntityGraph(attributePaths = {"course", "material"})
+    Optional<ChatSession> findWithContextByIdAndUserId(Long id, Long userId);
 
     boolean existsByIdAndUserId(Long id, Long userId);
 }

@@ -13,7 +13,6 @@ import com.aistudy.assistant.entity.Topic;
 import com.aistudy.assistant.entity.User;
 import com.aistudy.assistant.exception.ResourceNotFoundException;
 import com.aistudy.assistant.repository.CourseRepository;
-import com.aistudy.assistant.repository.MaterialRepository;
 import com.aistudy.assistant.repository.TopicRepository;
 import com.aistudy.assistant.repository.UserRepository;
 import com.aistudy.assistant.service.CourseService;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,7 +32,6 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final TopicRepository topicRepository;
-    private final MaterialRepository materialRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -40,12 +39,24 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponse> getUserCourses() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         List<Course> courses = courseRepository.findByUserIdOrderByCreatedAtDesc(currentUserId);
+        if (courses.isEmpty()) {
+            return List.of();
+        }
 
-        return courses.stream().map(course -> {
-            long topicCount = courseRepository.countTopicsByCourseId(course.getId());
-            long materialCount = courseRepository.countMaterialsByCourseId(course.getId());
-            return CourseResponse.fromEntity(course, topicCount, materialCount);
-        }).collect(Collectors.toList());
+        List<Long> courseIds = courses.stream()
+                .map(Course::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> topicCountMap = toCountMap(courseRepository.countTopicsByCourseIds(courseIds));
+        Map<Long, Long> materialCountMap = toCountMap(courseRepository.countMaterialsByCourseIds(courseIds));
+
+        return courses.stream()
+                .map(course -> CourseResponse.fromEntity(
+                        course,
+                        topicCountMap.getOrDefault(course.getId(), 0L),
+                        materialCountMap.getOrDefault(course.getId(), 0L)
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -71,7 +82,8 @@ public class CourseServiceImpl implements CourseService {
     @Transactional(readOnly = true)
     public CourseDetailResponse getCourseDetail(Long courseId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        Course course = findCourseAndValidateOwnership(courseId, currentUserId);
+        Course course = courseRepository.findWithTopicsByIdAndUserId(courseId, currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
 
         return CourseDetailResponse.fromEntity(course);
     }
@@ -127,7 +139,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public TopicResponse updateTopic(Long courseId, Long topicId, UpdateTopicRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        findCourseAndValidateOwnership(courseId, currentUserId);
+        validateCourseOwnership(courseId, currentUserId);
 
         Topic topic = topicRepository.findByIdAndCourseId(topicId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Topic", "id", topicId));
@@ -147,7 +159,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void deleteTopic(Long courseId, Long topicId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        findCourseAndValidateOwnership(courseId, currentUserId);
+        validateCourseOwnership(courseId, currentUserId);
 
         Topic topic = topicRepository.findByIdAndCourseId(topicId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Topic", "id", topicId));
@@ -159,5 +171,20 @@ public class CourseServiceImpl implements CourseService {
     private Course findCourseAndValidateOwnership(Long courseId, Long userId) {
         return courseRepository.findByIdAndUserId(courseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
+    }
+
+    private void validateCourseOwnership(Long courseId, Long userId) {
+        if (!courseRepository.existsByIdAndUserId(courseId, userId)) {
+            throw new ResourceNotFoundException("Course", "id", courseId);
+        }
+    }
+
+    private Map<Long, Long> toCountMap(List<CourseRepository.CourseCountProjection> projections) {
+        return projections.stream()
+                .collect(Collectors.toMap(
+                        CourseRepository.CourseCountProjection::getCourseId,
+                        CourseRepository.CourseCountProjection::getTotal,
+                        Long::sum
+                ));
     }
 }

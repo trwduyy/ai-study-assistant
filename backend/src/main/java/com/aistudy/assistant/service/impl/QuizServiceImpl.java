@@ -137,8 +137,9 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public List<QuizResponse> getQuizzesByCourse(Long courseId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        courseRepository.findByIdAndUserId(courseId, currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course", "id", courseId));
+        if (!courseRepository.existsByIdAndUserId(courseId, currentUserId)) {
+            throw new ResourceNotFoundException("Course", "id", courseId);
+        }
 
         List<Quiz> quizzes = quizRepository.findByCourseIdAndUserIdOrderByCreatedAtDesc(courseId, currentUserId);
         return quizzes.stream()
@@ -150,7 +151,8 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public QuizExamResponse getQuizExamDetail(Long quizId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        Quiz quiz = findQuizAndValidateOwnership(quizId, currentUserId);
+        Quiz quiz = quizRepository.findWithQuestionsByIdAndUserId(quizId, currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", quizId));
 
         // Security requirement: Ensure correctOption and explanation are NEVER leaked in exam mode
         return QuizExamResponse.fromEntity(quiz);
@@ -160,7 +162,8 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public QuizSubmitResultResponse submitQuiz(Long quizId, SubmitQuizRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        Quiz quiz = findQuizAndValidateOwnership(quizId, currentUserId);
+        Quiz quiz = quizRepository.findWithQuestionsByIdAndUserId(quizId, currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", quizId));
         User currentUser = quiz.getUser();
 
         List<QuizQuestion> questions = quiz.getQuestions();
@@ -239,7 +242,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public AttemptDetailResponse getAttemptDetail(Long attemptId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        QuizAttempt attempt = quizAttemptRepository.findByIdAndUserId(attemptId, currentUserId)
+        QuizAttempt attempt = quizAttemptRepository.findWithDetailsByIdAndUserId(attemptId, currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("QuizAttempt", "id", attemptId));
 
         return AttemptDetailResponse.fromEntity(attempt);

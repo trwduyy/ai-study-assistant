@@ -84,8 +84,9 @@ public class SummaryServiceImpl implements SummaryService {
     @Transactional(readOnly = true)
     public List<SummaryResponse> getSummariesByMaterial(Long materialId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        materialRepository.findByIdAndUserId(materialId, currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("Material", "id", materialId));
+        if (!materialRepository.existsByIdAndUserId(materialId, currentUserId)) {
+            throw new ResourceNotFoundException("Material", "id", materialId);
+        }
 
         List<Summary> summaries = summaryRepository.findByMaterialIdAndUserIdOrderByCreatedAtDesc(materialId, currentUserId);
         return summaries.stream()

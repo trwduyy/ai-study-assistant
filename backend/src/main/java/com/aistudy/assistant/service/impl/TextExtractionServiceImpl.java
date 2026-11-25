@@ -6,6 +6,7 @@ import com.aistudy.assistant.service.TextExtractionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
@@ -104,27 +105,27 @@ public class TextExtractionServiceImpl implements TextExtractionService {
 
             StringBuilder sb = new StringBuilder();
 
-            for (XWPFParagraph paragraph : document.getParagraphs()) {
-                String text = paragraph.getText();
-                if (StringUtils.hasText(text)) {
-                    sb.append(text).append("\n");
-                }
-            }
-
-            for (XWPFTable table : document.getTables()) {
-                for (XWPFTableRow row : table.getRows()) {
-                    StringBuilder rowBuilder = new StringBuilder();
-                    for (XWPFTableCell cell : row.getTableCells()) {
-                        String cellText = cell.getText();
-                        if (StringUtils.hasText(cellText)) {
-                            rowBuilder.append(cellText.trim()).append(" | ");
+            for (IBodyElement element : document.getBodyElements()) {
+                if (element instanceof XWPFParagraph paragraph) {
+                    String text = paragraph.getText();
+                    if (StringUtils.hasText(text)) {
+                        sb.append(text).append("\n");
+                    }
+                } else if (element instanceof XWPFTable table) {
+                    for (XWPFTableRow row : table.getRows()) {
+                        StringBuilder rowBuilder = new StringBuilder();
+                        for (XWPFTableCell cell : row.getTableCells()) {
+                            String cellText = cell.getText();
+                            if (StringUtils.hasText(cellText)) {
+                                rowBuilder.append(cellText.trim()).append(" | ");
+                            }
+                        }
+                        if (!rowBuilder.isEmpty()) {
+                            sb.append(rowBuilder).append("\n");
                         }
                     }
-                    if (!rowBuilder.isEmpty()) {
-                        sb.append(rowBuilder).append("\n");
-                    }
+                    sb.append("\n");
                 }
-                sb.append("\n");
             }
 
             return sb.toString();
