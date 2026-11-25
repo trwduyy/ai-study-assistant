@@ -30,6 +30,7 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này."),
     NOT_RESOURCE_OWNER(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập tài nguyên này."),
     NOT_CLASS_MEMBER(HttpStatus.FORBIDDEN, "Bạn không phải thành viên của lớp học này."),
+    NOT_CONVERSATION_MEMBER(HttpStatus.FORBIDDEN, "Bạn không phải thành viên của cuộc trò chuyện này."),
     ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần."),
     ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "Tài khoản đã bị vô hiệu hóa."),
 
@@ -56,6 +57,8 @@ public enum ErrorCode {
     SUBMISSION_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tệp bài nộp."),
     CLASS_TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài kiểm tra."),
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông báo."),
+    CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy cuộc trò chuyện."),
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tin nhắn."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "Đường dẫn API không tồn tại."),
 
     // 405 Method Not Allowed

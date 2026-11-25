@@ -23,6 +23,9 @@ import com.aistudy.assistant.classroom.entity.Classroom;
 import com.aistudy.assistant.classroom.entity.ClassroomStatus;
 import com.aistudy.assistant.classroom.entity.JoinRequestDecision;
 import com.aistudy.assistant.classroom.entity.JoinRequestStatus;
+import com.aistudy.assistant.classroom.event.ClassMemberActivatedEvent;
+import com.aistudy.assistant.classroom.event.ClassMemberDeactivatedEvent;
+import com.aistudy.assistant.classroom.event.ClassroomCreatedEvent;
 import com.aistudy.assistant.classroom.mapper.ClassroomMapper;
 import com.aistudy.assistant.classroom.repository.ClassJoinRequestRepository;
 import com.aistudy.assistant.classroom.repository.ClassMaterialRepository;
@@ -43,6 +46,7 @@ import com.aistudy.assistant.learning.service.FileStorageService;
 import com.aistudy.assistant.notification.service.NotificationOutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -89,6 +93,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final FileStorageService fileStorageService;
     private final ClassroomMapper classroomMapper;
     private final TransactionTemplate transactionTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -124,6 +129,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .joinedAt(now)
                 .build();
         classMemberRepository.save(ownerMembership);
+        eventPublisher.publishEvent(new ClassroomCreatedEvent(savedClassroom.getId(), owner.getId()));
 
         log.info("Created classroom id={} code={} by owner userId={}",
                 savedClassroom.getId(), savedClassroom.getCode(), currentUserId);
@@ -326,6 +332,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                         .build();
             }
             classMemberRepository.save(member);
+            eventPublisher.publishEvent(new ClassMemberActivatedEvent(classId, student.getId()));
             eventType = "CLASS_JOIN_REQUEST_APPROVED";
         } else {
             joinRequest.setStatus(JoinRequestStatus.REJECTED);
@@ -402,6 +409,7 @@ public class ClassroomServiceImpl implements ClassroomService {
         }
 
         ClassMember saved = classMemberRepository.save(member);
+        eventPublisher.publishEvent(new ClassMemberActivatedEvent(classId, targetUser.getId()));
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("classId", classroom.getId());
         payload.put("className", classroom.getName());
@@ -442,6 +450,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
         target.setStatus(ClassMemberStatus.REMOVED);
         classMemberRepository.save(target);
+        eventPublisher.publishEvent(new ClassMemberDeactivatedEvent(classId, targetUserId));
 
         log.info("Removed member userId={} from classroom id={} by teacher userId={}",
                 targetUserId, classId, currentUserId);
@@ -462,6 +471,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
         member.setStatus(ClassMemberStatus.LEFT);
         classMemberRepository.save(member);
+        eventPublisher.publishEvent(new ClassMemberDeactivatedEvent(classId, currentUserId));
         log.info("Member userId={} left classroom id={}", currentUserId, classId);
     }
 

@@ -40,6 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -100,6 +101,9 @@ class ClassroomServiceTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private ClassroomServiceImpl classroomService;
 
     private User teacherUser;
@@ -134,7 +138,8 @@ class ClassroomServiceTest {
                 notificationOutboxService,
                 fileStorageService,
                 new ClassroomMapper(),
-                immediateTxTemplate
+                immediateTxTemplate,
+                eventPublisher
         );
 
         teacherUser = User.builder()
