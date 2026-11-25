@@ -20,6 +20,7 @@ import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository.OverviewStatsProjection;
+import com.aistudy.assistant.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final QuizAttemptRepository quizAttemptRepository;
     private final AttemptAnswerRepository attemptAnswerRepository;
     private final AssignmentRepository assignmentRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -127,6 +129,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 Instant.now(),
                 PageRequest.of(0, 5)
         );
+        long unreadNotificationCount = notificationRepository.countByUserIdAndReadAtIsNull(userId);
 
         return new StudentDashboardResponse(
                 new DashboardOverviewSummary(
@@ -139,7 +142,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 reviewTopics,
                 List.of(),
                 dueAssignments,
-                0L,
+                unreadNotificationCount,
                 List.of()
         );
     }

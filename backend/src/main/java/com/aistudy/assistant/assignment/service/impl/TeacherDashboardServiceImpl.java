@@ -11,6 +11,7 @@ import com.aistudy.assistant.assignment.service.TeacherDashboardService;
 import com.aistudy.assistant.classroom.repository.ClassJoinRequestRepository;
 import com.aistudy.assistant.classroom.repository.ClassMemberRepository;
 import com.aistudy.assistant.identity.security.SecurityUtils;
+import com.aistudy.assistant.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
     private final ClassJoinRequestRepository classJoinRequestRepository;
     private final AssignmentRepository assignmentRepository;
     private final ClassTestRepository classTestRepository;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -56,11 +58,14 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 .map(this::toRecentTestResultItem)
                 .toList();
 
+        long unreadNotificationCount = notificationRepository.countByUserIdAndReadAtIsNull(teacherId);
+
         return new TeacherDashboardResponse(
                 totalClasses,
                 pendingJoinRequests,
                 upcomingAssignments,
-                recentTestResults
+                recentTestResults,
+                unreadNotificationCount
         );
     }
 

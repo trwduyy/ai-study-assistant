@@ -12,6 +12,7 @@ import com.aistudy.assistant.identity.entity.User;
 import com.aistudy.assistant.identity.entity.UserRole;
 import com.aistudy.assistant.identity.entity.UserStatus;
 import com.aistudy.assistant.identity.security.UserPrincipal;
+import com.aistudy.assistant.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +47,8 @@ class TeacherDashboardServiceTest {
     private AssignmentRepository assignmentRepository;
     @Mock
     private ClassTestRepository classTestRepository;
+    @Mock
+    private NotificationRepository notificationRepository;
 
     @InjectMocks
     private TeacherDashboardServiceImpl teacherDashboardService;
@@ -103,6 +106,7 @@ class TeacherDashboardServiceTest {
 
         when(classTestRepository.findRecentForTeacherDashboard(1L, PageRequest.of(0, 5)))
                 .thenReturn(List.of(testRow));
+        when(notificationRepository.countByUserIdAndReadAtIsNull(1L)).thenReturn(4L);
 
         TeacherDashboardResponse dashboard = teacherDashboardService.getTeacherDashboard();
 
@@ -112,5 +116,6 @@ class TeacherDashboardServiceTest {
         assertEquals(37.5, dashboard.upcomingAssignments().get(0).submissionRate());
         assertEquals(1, dashboard.recentTestResults().size());
         assertEquals(8.13, dashboard.recentTestResults().get(0).averageScore());
+        assertEquals(4L, dashboard.unreadNotificationCount());
     }
 }

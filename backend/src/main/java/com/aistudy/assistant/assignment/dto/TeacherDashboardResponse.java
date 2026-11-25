@@ -11,7 +11,8 @@ public record TeacherDashboardResponse(
         long totalClasses,
         long pendingJoinRequests,
         List<UpcomingAssignmentItem> upcomingAssignments,
-        List<RecentTestResultItem> recentTestResults
+        List<RecentTestResultItem> recentTestResults,
+        long unreadNotificationCount
 ) {
     public record UpcomingAssignmentItem(
             Long assignmentId,

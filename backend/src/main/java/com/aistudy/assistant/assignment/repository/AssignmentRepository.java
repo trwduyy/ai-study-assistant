@@ -138,4 +138,36 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
             @Param("now") Instant now,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT a
+            FROM Assignment a
+            JOIN FETCH a.classroom
+            WHERE a.dueAt IS NOT NULL
+              AND a.dueAt > :now
+              AND a.dueAt <= :windowEnd
+            """)
+    List<Assignment> findDueWithinWindow(
+            @Param("now") Instant now,
+            @Param("windowEnd") Instant windowEnd
+    );
+
+    @Query("""
+            SELECT cm.user.id
+            FROM ClassMember cm
+            WHERE cm.classroom.id = :classId
+              AND cm.status = com.aistudy.assistant.classroom.entity.ClassMemberStatus.ACTIVE
+              AND cm.classRole = com.aistudy.assistant.classroom.entity.ClassRole.STUDENT
+              AND NOT EXISTS (
+                  SELECT 1 FROM Submission s
+                  WHERE s.assignment.id = :assignmentId
+                    AND s.student.id = cm.user.id
+                    AND NOT (s.status = com.aistudy.assistant.assignment.entity.SubmissionStatus.RETURNED
+                             AND s.gradedAt IS NULL AND s.score IS NULL)
+              )
+            """)
+    List<Long> findActiveStudentIdsWithoutSubmission(
+            @Param("assignmentId") Long assignmentId,
+            @Param("classId") Long classId
+    );
 }

@@ -55,6 +55,7 @@ public enum ErrorCode {
     SUBMISSION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài nộp."),
     SUBMISSION_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tệp bài nộp."),
     CLASS_TEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài kiểm tra."),
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông báo."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "Đường dẫn API không tồn tại."),
 
     // 405 Method Not Allowed

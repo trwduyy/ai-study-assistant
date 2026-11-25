@@ -18,6 +18,7 @@ import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository;
 import com.aistudy.assistant.learning.repository.QuizAttemptRepository.OverviewStatsProjection;
+import com.aistudy.assistant.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,6 +55,8 @@ class AnalyticsServiceTest {
     private AttemptAnswerRepository attemptAnswerRepository;
     @Mock
     private AssignmentRepository assignmentRepository;
+    @Mock
+    private NotificationRepository notificationRepository;
 
     @InjectMocks
     private AnalyticsServiceImpl analyticsService;
@@ -100,6 +103,7 @@ class AnalyticsServiceTest {
                 .thenReturn(List.of(new StudentDashboardResponse.DueAssignmentSummary(
                         401L, 100L, "Lập trình Mạng", "Socket TCP", Instant.now().plusSeconds(3600), true, new BigDecimal("10.00")
                 )));
+        when(notificationRepository.countByUserIdAndReadAtIsNull(10L)).thenReturn(3L);
 
         AnalyticsOverviewResponse overview = analyticsService.getOverview();
         StudentDashboardResponse dashboard = analyticsService.getStudentDashboard();
@@ -111,7 +115,7 @@ class AnalyticsServiceTest {
         assertTrue(dashboard.upcomingEvents().isEmpty());
         assertEquals(1, dashboard.dueAssignments().size());
         assertEquals(401L, dashboard.dueAssignments().get(0).assignmentId());
-        assertEquals(0L, dashboard.unreadNotificationCount());
+        assertEquals(3L, dashboard.unreadNotificationCount());
         assertTrue(dashboard.todayTasks().isEmpty());
     }
 
