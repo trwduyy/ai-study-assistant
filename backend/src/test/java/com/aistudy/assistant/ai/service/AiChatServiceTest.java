@@ -60,11 +60,21 @@ class AiChatServiceTest {
     private AiChatTxService aiChatTxService;
     @Mock
     private GeminiClientService geminiClientService;
+    @Mock
+    private com.aistudy.assistant.ai.repository.MaterialChunkEmbeddingRepository embeddingRepository;
 
     private AiChatServiceImpl aiChatService;
 
     @BeforeEach
     void setUp() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ChunkRetrieverService retrieverService = new HybridChunkRetrieverServiceImpl(
+                embeddingRepository,
+                geminiClientService,
+                new ChunkGroundingService(),
+                objectMapper,
+                0.45
+        );
         aiChatService = new AiChatServiceImpl(
                 aiChatRepository,
                 aiChatMessageRepository,
@@ -72,10 +82,10 @@ class AiChatServiceTest {
                 userRepository,
                 courseRepository,
                 aiChatTxService,
-                new ChunkGroundingService(),
+                retrieverService,
                 geminiClientService,
                 new AiMapper(),
-                new ObjectMapper()
+                objectMapper
         );
 
         User student = User.builder()

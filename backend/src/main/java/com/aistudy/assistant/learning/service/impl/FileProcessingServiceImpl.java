@@ -1,5 +1,6 @@
 package com.aistudy.assistant.learning.service.impl;
 
+import com.aistudy.assistant.ai.service.EmbeddingService;
 import com.aistudy.assistant.common.exception.ErrorCode;
 import com.aistudy.assistant.learning.entity.Material;
 import com.aistudy.assistant.learning.entity.MaterialChunk;
@@ -51,6 +52,7 @@ public class FileProcessingServiceImpl implements FileProcessingService {
     private final MaterialRepository materialRepository;
     private final MaterialChunkRepository materialChunkRepository;
     private final FileStorageService fileStorageService;
+    private final EmbeddingService embeddingService;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -93,6 +95,12 @@ public class FileProcessingServiceImpl implements FileProcessingService {
 
             transactionTemplate.executeWithoutResult(status -> persistExtractedChunks(materialId, result.pageCount(), chunkDrafts));
             log.info("Material id={} extracted successfully: pages={}, chunks={}", materialId, result.pageCount(), chunkDrafts.size());
+
+            try {
+                embeddingService.generateEmbeddingsForMaterial(materialId);
+            } catch (Exception ex) {
+                log.warn("Post-extraction embedding generation failed for materialId={}: {}", materialId, ex.getMessage());
+            }
         } catch (Exception ex) {
             log.error("Async extraction failed for material id={}", materialId, ex);
             transactionTemplate.executeWithoutResult(status -> markFailed(

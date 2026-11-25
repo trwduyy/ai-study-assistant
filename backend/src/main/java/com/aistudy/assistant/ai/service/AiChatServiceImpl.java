@@ -60,7 +60,7 @@ public class AiChatServiceImpl implements AiChatService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final AiChatTxService aiChatTxService;
-    private final ChunkGroundingService chunkGroundingService;
+    private final ChunkRetrieverService chunkRetrieverService;
     private final GeminiClientService geminiClientService;
     private final AiMapper aiMapper;
     private final ObjectMapper objectMapper;
@@ -159,7 +159,7 @@ public class AiChatServiceImpl implements AiChatService {
                 request.materialIds()
         );
 
-        List<ChunkCandidate> topChunks = chunkGroundingService.selectTopChunks(
+        List<ChunkCandidate> topChunks = chunkRetrieverService.retrieveRelevantChunks(
                 question,
                 prepared.candidateChunks(),
                 TOP_K_CHUNKS

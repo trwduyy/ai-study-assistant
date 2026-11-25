@@ -6,10 +6,12 @@ import com.aistudy.assistant.ai.entity.AiJobStatus;
 import com.aistudy.assistant.ai.entity.SummaryLength;
 import com.aistudy.assistant.ai.integration.GeminiClientService;
 import com.aistudy.assistant.ai.repository.AiJobRepository;
+import com.aistudy.assistant.ai.service.AiFlashcardValidator;
+import com.aistudy.assistant.ai.service.AiFlashcardValidator.GeneratedFlashcard;
 import com.aistudy.assistant.ai.service.AiQuizValidator;
 import com.aistudy.assistant.ai.service.AiQuizValidator.GeneratedQuestion;
-import com.aistudy.assistant.ai.service.ChunkGroundingService;
 import com.aistudy.assistant.ai.service.ChunkGroundingService.ChunkCandidate;
+import com.aistudy.assistant.ai.service.ChunkRetrieverService;
 import com.aistudy.assistant.ai.worker.AiJobTxService.ClaimedJobSnapshot;
 import com.aistudy.assistant.common.exception.AppException;
 import com.aistudy.assistant.common.exception.ErrorCode;
@@ -52,8 +54,9 @@ public class AiJobWorker {
     private final AiJobRepository aiJobRepository;
     private final AiJobTxService aiJobTxService;
     private final GeminiClientService geminiClientService;
-    private final ChunkGroundingService chunkGroundingService;
+    private final ChunkRetrieverService chunkRetrieverService;
     private final AiQuizValidator aiQuizValidator;
+    private final AiFlashcardValidator aiFlashcardValidator;
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -82,6 +85,7 @@ public class AiJobWorker {
                 case SUMMARY -> handleSummaryJob(job);
                 case EXPLAIN -> handleExplainJob(job);
                 case QUIZ -> handleQuizJob(job);
+                case FLASHCARD -> handleFlashcardJob(job);
                 default -> aiJobTxService.failJob(
                         job.jobId(),
                         ErrorCode.UNPROCESSABLE_ENTITY.name(),
@@ -176,7 +180,7 @@ public class AiJobWorker {
         }
 
         String query = StringUtils.hasText(contextSnippet) ? concept + " " + contextSnippet : concept;
-        List<ChunkCandidate> matched = chunkGroundingService.selectTopChunks(query, allChunks, 5);
+        List<ChunkCandidate> matched = chunkRetrieverService.retrieveRelevantChunks(query, allChunks, 5);
 
         if (matched.isEmpty() && !allowExternal) {
             Map<String, Object> output = new LinkedHashMap<>();
@@ -232,7 +236,7 @@ public class AiJobWorker {
         }
 
         List<ChunkCandidate> selectedChunks = StringUtils.hasText(topic)
-                ? chunkGroundingService.selectTopChunks(topic, allChunks, 10)
+                ? chunkRetrieverService.retrieveRelevantChunks(topic, allChunks, 10)
                 : List.of();
         if (selectedChunks.isEmpty()) {
             selectedChunks = allChunks;
@@ -307,6 +311,75 @@ public class AiJobWorker {
                 validatedQuestions,
                 geminiClientService.getModel(),
                 PROMPT_VERSION_QUIZ
+        );
+    }
+
+    private void handleFlashcardJob(ClaimedJobSnapshot job) {
+        List<Long> materialIds = asLongList(job.inputJson().get("materialIds"));
+        Long deckId = asLong(job.inputJson().get("deckId"));
+        Long courseId = asLong(job.inputJson().get("courseId"));
+        String deckTitle = asString(job.inputJson().get("deckTitle"));
+        int cardCount = Math.min(Math.max(asInteger(job.inputJson().get("cardCount"), 10), 1), 30);
+
+        List<ChunkCandidate> allChunks = aiJobTxService.loadChunks(materialIds);
+        if (allChunks.isEmpty()) {
+            throw new AppException(ErrorCode.TEXT_NOT_EXTRACTED);
+        }
+
+        String contextText = formatChunksWithIds(allChunks);
+        Set<Long> allowedChunkIds = allChunks.stream()
+                .map(ChunkCandidate::chunkId)
+                .collect(Collectors.toSet());
+
+        String systemPrompt = """
+                Bạn là trợ lý học tập AI. Hãy tạo bộ thẻ flashcard ghi nhớ kiến thức hoàn toàn bằng tiếng Việt phổ thông,
+                chỉ bám sát nội dung trong các đoạn tài liệu được cung cấp.
+                Yêu cầu bắt buộc:
+                1. Mỗi thẻ gồm `front` (câu hỏi hoặc khái niệm ngắn gọn, súc tích) và `back` (định nghĩa/câu trả lời rõ ràng, chính xác).
+                2. Gắn `sourceChunkId` tương ứng với `chunkId` chứa kiến thức của thẻ.
+                3. Trả về đúng JSON hợp lệ theo schema, không thêm văn bản ngoài JSON.
+                """;
+        String userPrompt = String.format(
+                "Số lượng thẻ cần tạo: %d\n\nNội dung tài liệu tham chiếu:\n%s",
+                cardCount,
+                contextText
+        );
+
+        Map<String, Object> schema = aiFlashcardValidator.buildFlashcardJsonSchema();
+        List<GeneratedFlashcard> validatedCards = null;
+        AppException lastValidationError = null;
+
+        for (int attempt = 0; attempt <= MAX_QUIZ_VALIDATION_RETRIES; attempt++) {
+            try {
+                String prompt = attempt == 0
+                        ? userPrompt
+                        : userPrompt + "\n\nLƯU Ý SỬA LỖI ĐỊNH DẠNG LẦN TRƯỚC: " + lastValidationError.getMessage();
+                String rawJson = geminiClientService.generateStructuredJson(systemPrompt, prompt, schema);
+                validatedCards = aiFlashcardValidator.parseAndValidate(rawJson, allowedChunkIds);
+                break;
+            } catch (AppException ex) {
+                if (ex.getErrorCode() == ErrorCode.AI_OUTPUT_INVALID && attempt < MAX_QUIZ_VALIDATION_RETRIES) {
+                    lastValidationError = ex;
+                    log.warn("Flashcard JSON validation failed for job {} (attempt {}/{}): {}",
+                            job.jobId(), attempt + 1, MAX_QUIZ_VALIDATION_RETRIES + 1, ex.getMessage());
+                    continue;
+                }
+                throw ex;
+            }
+        }
+
+        if (validatedCards == null || validatedCards.isEmpty()) {
+            throw lastValidationError != null
+                    ? lastValidationError
+                    : new AppException(ErrorCode.AI_OUTPUT_INVALID);
+        }
+
+        aiJobTxService.completeFlashcardJob(
+                job.jobId(),
+                deckId,
+                courseId,
+                StringUtils.hasText(deckTitle) ? deckTitle.trim() : "Flashcards ôn tập AI",
+                validatedCards
         );
     }
 

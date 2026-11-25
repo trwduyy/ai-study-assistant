@@ -6,6 +6,7 @@ import com.aistudy.assistant.ai.dto.AiJobResponse;
 import com.aistudy.assistant.ai.dto.AiSummaryResponse;
 import com.aistudy.assistant.ai.dto.CreateExplanationRequest;
 import com.aistudy.assistant.ai.dto.CreateSummaryRequest;
+import com.aistudy.assistant.ai.dto.GenerateAiFlashcardsRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiQuizRequest;
 import com.aistudy.assistant.ai.entity.AiJob;
 import com.aistudy.assistant.ai.entity.AiJobStatus;
@@ -27,6 +28,8 @@ import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.learning.entity.QuestionType;
 import com.aistudy.assistant.learning.entity.QuizDifficulty;
 import com.aistudy.assistant.learning.entity.Topic;
+import com.aistudy.assistant.learning.flashcard.entity.FlashcardDeck;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardDeckRepository;
 import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
@@ -54,6 +57,7 @@ public class AiJobServiceImpl implements AiJobService {
     private final TopicRepository topicRepository;
     private final MaterialRepository materialRepository;
     private final MaterialChunkRepository materialChunkRepository;
+    private final FlashcardDeckRepository flashcardDeckRepository;
     private final AiMapper aiMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -185,6 +189,53 @@ public class AiJobServiceImpl implements AiJobService {
         input.put("type", (request.type() != null ? request.type() : QuestionType.SINGLE_CHOICE).name());
 
         return queueJob(userId, AiJobType.QUIZ, input);
+    }
+
+    @Override
+    @Transactional
+    public AiJobAcceptedResponse requestFlashcardGeneration(GenerateAiFlashcardsRequest request) {
+        Long userId = SecurityUtils.currentUserId();
+
+        if (request.deckId() != null) {
+            FlashcardDeck deck = flashcardDeckRepository.findWithDetailsById(request.deckId())
+                    .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_DECK_NOT_FOUND));
+            if (!deck.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+        }
+        if (request.courseId() != null) {
+            Course course = courseRepository.findByIdAndDeletedAtIsNull(request.courseId())
+                    .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+            if (!course.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+        }
+
+        List<Long> distinctMaterialIds = request.materialIds().stream().distinct().toList();
+        List<Material> materials = materialRepository.findByIdInAndDeletedAtIsNull(distinctMaterialIds);
+        if (materials.size() != distinctMaterialIds.size()) {
+            throw new AppException(ErrorCode.MATERIAL_NOT_FOUND);
+        }
+        Map<Long, Material> byId = materials.stream().collect(Collectors.toMap(Material::getId, m -> m));
+        for (Long materialId : distinctMaterialIds) {
+            Material material = byId.get(materialId);
+            if (!material.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+            if (material.getStatus() != MaterialStatus.EXTRACTED
+                    || materialChunkRepository.countByMaterialId(materialId) == 0) {
+                throw new AppException(ErrorCode.TEXT_NOT_EXTRACTED);
+            }
+        }
+
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("materialIds", distinctMaterialIds);
+        input.put("deckId", request.deckId());
+        input.put("deckTitle", request.deckTitle() != null ? request.deckTitle().trim() : null);
+        input.put("courseId", request.courseId());
+        input.put("cardCount", request.cardCount() != null ? request.cardCount() : 10);
+
+        return queueJob(userId, AiJobType.FLASHCARD, input);
     }
 
     private AiJobAcceptedResponse queueJob(Long userId, AiJobType type, Map<String, Object> input) {

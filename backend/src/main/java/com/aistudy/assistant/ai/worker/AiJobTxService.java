@@ -9,6 +9,7 @@ import com.aistudy.assistant.ai.entity.SummaryLength;
 import com.aistudy.assistant.ai.mapper.AiMapper;
 import com.aistudy.assistant.ai.repository.AiJobRepository;
 import com.aistudy.assistant.ai.repository.AiSummaryRepository;
+import com.aistudy.assistant.ai.service.AiFlashcardValidator;
 import com.aistudy.assistant.ai.service.AiQuizValidator;
 import com.aistudy.assistant.ai.service.ChunkGroundingService.ChunkCandidate;
 import com.aistudy.assistant.common.exception.AppException;
@@ -24,6 +25,10 @@ import com.aistudy.assistant.learning.entity.QuizDifficulty;
 import com.aistudy.assistant.learning.entity.QuizMaterial;
 import com.aistudy.assistant.learning.entity.QuizMaterialId;
 import com.aistudy.assistant.learning.entity.Topic;
+import com.aistudy.assistant.learning.flashcard.entity.Flashcard;
+import com.aistudy.assistant.learning.flashcard.entity.FlashcardDeck;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardDeckRepository;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardRepository;
 import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
@@ -63,6 +68,8 @@ public class AiJobTxService {
     private final QuizMaterialRepository quizMaterialRepository;
     private final QuestionRepository questionRepository;
     private final QuestionOptionRepository questionOptionRepository;
+    private final FlashcardDeckRepository flashcardDeckRepository;
+    private final FlashcardRepository flashcardRepository;
     private final AiMapper aiMapper;
 
     public record ClaimedJobSnapshot(
@@ -263,6 +270,70 @@ public class AiJobTxService {
         job.setStatus(AiJobStatus.SUCCEEDED);
         job.setResultType("QUIZ");
         job.setResultId(quiz.getId());
+        job.setErrorCode(null);
+        job.setErrorMessage(null);
+        job.setFinishedAt(Instant.now());
+        aiJobRepository.save(job);
+    }
+
+    @Transactional
+    public void completeFlashcardJob(
+            String jobId,
+            Long deckId,
+            Long courseId,
+            String deckTitle,
+            List<AiFlashcardValidator.GeneratedFlashcard> generatedCards) {
+        AiJob job = aiJobRepository.findWithUserById(jobId)
+                .orElseThrow(() -> new AppException(ErrorCode.AI_JOB_NOT_FOUND));
+        if (job.getStatus() == AiJobStatus.CANCELLED) {
+            return;
+        }
+
+        FlashcardDeck deck;
+        if (deckId != null) {
+            deck = flashcardDeckRepository.findWithDetailsById(deckId)
+                    .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_DECK_NOT_FOUND));
+            if (!deck.getOwner().getId().equals(job.getUser().getId())) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+        } else {
+            Course course = courseId != null
+                    ? courseRepository.findByIdAndDeletedAtIsNull(courseId).orElse(null)
+                    : null;
+            deck = flashcardDeckRepository.save(FlashcardDeck.builder()
+                    .owner(job.getUser())
+                    .course(course)
+                    .title(deckTitle)
+                    .build());
+        }
+
+        List<Long> chunkIds = generatedCards.stream()
+                .map(AiFlashcardValidator.GeneratedFlashcard::sourceChunkId)
+                .filter(id -> id != null && id > 0)
+                .distinct()
+                .toList();
+        Map<Long, MaterialChunk> chunkMap = chunkIds.isEmpty()
+                ? Map.of()
+                : materialChunkRepository.findAllById(chunkIds).stream()
+                        .collect(Collectors.toMap(MaterialChunk::getId, Function.identity()));
+
+        List<Flashcard> cards = new ArrayList<>(generatedCards.size());
+        for (AiFlashcardValidator.GeneratedFlashcard generated : generatedCards) {
+            MaterialChunk sourceChunk = generated.sourceChunkId() != null
+                    ? chunkMap.get(generated.sourceChunkId())
+                    : null;
+            cards.add(Flashcard.builder()
+                    .deck(deck)
+                    .front(generated.front())
+                    .back(generated.back())
+                    .sourceChunk(sourceChunk)
+                    .build());
+        }
+        flashcardRepository.saveAll(cards);
+
+        job.setStatus(AiJobStatus.SUCCEEDED);
+        job.setResultType("FLASHCARD_DECK");
+        job.setResultId(deck.getId());
         job.setErrorCode(null);
         job.setErrorMessage(null);
         job.setFinishedAt(Instant.now());

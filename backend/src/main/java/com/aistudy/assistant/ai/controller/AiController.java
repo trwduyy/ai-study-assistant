@@ -12,6 +12,7 @@ import com.aistudy.assistant.ai.dto.CreateAiChatRequest;
 import com.aistudy.assistant.ai.dto.CreateAiFeedbackRequest;
 import com.aistudy.assistant.ai.dto.CreateExplanationRequest;
 import com.aistudy.assistant.ai.dto.CreateSummaryRequest;
+import com.aistudy.assistant.ai.dto.GenerateAiFlashcardsRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiQuizRequest;
 import com.aistudy.assistant.ai.dto.SendAiChatMessageRequest;
 import com.aistudy.assistant.ai.service.AiChatService;
@@ -100,6 +101,14 @@ public class AiController {
             @Valid @RequestBody GenerateAiQuizRequest request) {
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResponse.success(aiJobService.requestQuizGeneration(request)));
+    }
+
+    @PostMapping("/ai/flashcards")
+    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<AiJobAcceptedResponse>> generateFlashcards(
+            @Valid @RequestBody GenerateAiFlashcardsRequest request) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(ApiResponse.success(aiJobService.requestFlashcardGeneration(request)));
     }
 
     @PostMapping("/ai/chats")

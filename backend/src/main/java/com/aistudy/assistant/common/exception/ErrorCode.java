@@ -42,6 +42,8 @@ public enum ErrorCode {
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy chủ đề."),
     MATERIAL_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tài liệu."),
     QUIZ_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bài quiz."),
+    FLASHCARD_DECK_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bộ flashcard."),
+    FLASHCARD_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thẻ flashcard."),
     ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lượt làm bài."),
     AI_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy tác vụ AI."),
     AI_SUMMARY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy bản tóm tắt."),
