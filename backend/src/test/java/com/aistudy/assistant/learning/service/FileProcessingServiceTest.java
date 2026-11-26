@@ -1,5 +1,6 @@
 package com.aistudy.assistant.learning.service;
 
+import com.aistudy.assistant.ai.service.EmbeddingService;
 import com.aistudy.assistant.common.exception.ErrorCode;
 import com.aistudy.assistant.learning.entity.Material;
 import com.aistudy.assistant.learning.entity.MaterialStatus;
@@ -51,6 +52,9 @@ class FileProcessingServiceTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private EmbeddingService embeddingService;
+
     private FileProcessingServiceImpl fileProcessingService;
 
     @BeforeEach
@@ -71,6 +75,7 @@ class FileProcessingServiceTest {
                 materialRepository,
                 materialChunkRepository,
                 fileStorageService,
+                embeddingService,
                 immediateTxTemplate
         );
     }

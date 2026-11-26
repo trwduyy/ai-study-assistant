@@ -1,5 +1,6 @@
 package com.aistudy.assistant.identity.service.impl;
 
+import com.aistudy.assistant.admin.service.AuditLogService;
 import com.aistudy.assistant.common.dto.FieldErrorDetail;
 import com.aistudy.assistant.common.exception.AppException;
 import com.aistudy.assistant.common.exception.ErrorCode;
@@ -28,6 +29,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -42,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final AuditLogService auditLogService;
 
     @Override
     @Transactional(readOnly = true)
@@ -116,13 +119,21 @@ public class UserServiceImpl implements UserService {
             verifyVersionMatches(user, expectedVersion);
         }
 
-        boolean roleChanged = user.getRole() != request.getRole();
+        UserRole previousRole = user.getRole();
+        boolean roleChanged = previousRole != request.getRole();
         user.setRole(request.getRole());
         User updated = userRepository.saveAndFlush(user);
 
         if (roleChanged) {
             refreshTokenRepository.revokeAllActiveByUserId(userId, Instant.now());
         }
+        auditLogService.record(
+                adminUserId,
+                "USER_ROLE_UPDATED",
+                "USER",
+                userId,
+                Map.of("oldRole", previousRole.name(), "newRole", updated.getRole().name())
+        );
         log.info("Admin id={} updated role of user id={} to {}", adminUserId, userId, request.getRole());
         return userMapper.toProfileResponse(updated);
     }
@@ -141,6 +152,7 @@ public class UserServiceImpl implements UserService {
             verifyVersionMatches(user, expectedVersion);
         }
 
+        UserStatus previousStatus = user.getStatus();
         user.setStatus(request.getStatus());
         if (request.getStatus() == UserStatus.ACTIVE) {
             user.resetFailedLogins();
@@ -150,6 +162,13 @@ public class UserServiceImpl implements UserService {
         if (request.getStatus() == UserStatus.LOCKED) {
             refreshTokenRepository.revokeAllActiveByUserId(userId, Instant.now());
         }
+        auditLogService.record(
+                adminUserId,
+                "USER_STATUS_UPDATED",
+                "USER",
+                userId,
+                Map.of("oldStatus", previousStatus.name(), "newStatus", updated.getStatus().name())
+        );
         log.info("Admin id={} updated status of user id={} to {}", adminUserId, userId, request.getStatus());
         return userMapper.toProfileResponse(updated);
     }

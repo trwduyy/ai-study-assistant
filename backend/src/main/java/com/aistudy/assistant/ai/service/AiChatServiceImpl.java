@@ -1,5 +1,6 @@
 package com.aistudy.assistant.ai.service;
 
+import com.aistudy.assistant.admin.service.AiQuotaService;
 import com.aistudy.assistant.ai.dto.AiChatAnswerResponse;
 import com.aistudy.assistant.ai.dto.AiChatDetailResponse;
 import com.aistudy.assistant.ai.dto.AiChatMessageDto;
@@ -60,10 +61,11 @@ public class AiChatServiceImpl implements AiChatService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final AiChatTxService aiChatTxService;
-    private final ChunkGroundingService chunkGroundingService;
+    private final ChunkRetrieverService chunkRetrieverService;
     private final GeminiClientService geminiClientService;
     private final AiMapper aiMapper;
     private final ObjectMapper objectMapper;
+    private final AiQuotaService aiQuotaService;
 
     @Override
     @Transactional
@@ -149,6 +151,7 @@ public class AiChatServiceImpl implements AiChatService {
     @Override
     public AiChatAnswerResponse sendMessage(Long chatId, SendAiChatMessageRequest request) {
         Long userId = SecurityUtils.currentUserId();
+        aiQuotaService.checkAndEnforceDailyQuota(userId);
         String question = request.content().trim();
         boolean allowExternal = Boolean.TRUE.equals(request.allowExternalKnowledge());
 
@@ -159,7 +162,7 @@ public class AiChatServiceImpl implements AiChatService {
                 request.materialIds()
         );
 
-        List<ChunkCandidate> topChunks = chunkGroundingService.selectTopChunks(
+        List<ChunkCandidate> topChunks = chunkRetrieverService.retrieveRelevantChunks(
                 question,
                 prepared.candidateChunks(),
                 TOP_K_CHUNKS

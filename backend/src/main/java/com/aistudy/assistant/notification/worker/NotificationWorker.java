@@ -152,6 +152,10 @@ public class NotificationWorker {
                     "Nhắc lịch sắp diễn ra",
                     "Sự kiện \"" + title + "\" sẽ bắt đầu trong vòng 30 phút tới."
             );
+            case "TASK_REMINDER" -> new NotificationText(
+                    "Nhắc nhiệm vụ học tập",
+                    "Đã đến giờ thực hiện nhiệm vụ \"" + title + "\"."
+            );
             default -> new NotificationText(
                     "Thông báo mới",
                     "Bạn có một thông báo mới (" + eventType + ")."

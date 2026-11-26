@@ -10,6 +10,18 @@ let mainWindow: BrowserWindow | null = null;
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 
+function isSafeHttpUrl(url: unknown): url is string {
+    if (typeof url !== "string" || !url.trim()) {
+        return false;
+    }
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
 function resolvePreloadPath(): string {
     const candidateCjs = path.join(__dirname, "preload.cjs");
     if (fs.existsSync(candidateCjs)) {
@@ -34,22 +46,21 @@ function createWindow(): void {
         }
     });
 
-    // Gracefully show window when content is ready
     mainWindow.once("ready-to-show", () => {
         if (mainWindow) {
             mainWindow.show();
         }
     });
 
-    // Handle opening external links in default OS browser
+    // Security: Open target="_blank" and external http/https links in OS default browser
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("mailto:")) {
-            shell.openExternal(url);
+        if (isSafeHttpUrl(url)) {
+            void shell.openExternal(url);
         }
         return { action: "deny" };
     });
 
-    // Prevent in-app navigation to external origins
+    // Security: Prevent in-app navigation to external origins; open http/https externally
     mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
         try {
             const parsedUrl = new URL(navigationUrl);
@@ -60,19 +71,20 @@ function createWindow(): void {
                 return;
             }
         } catch {
-            // Invalid URL format, prevent default navigation
+            // Invalid URL format; block navigation
         }
         event.preventDefault();
-        shell.openExternal(navigationUrl);
+        if (isSafeHttpUrl(navigationUrl)) {
+            void shell.openExternal(navigationUrl);
+        }
     });
 
-    // Load dev server or production build
     if (isDev) {
-        mainWindow.loadURL("http://localhost:5173");
+        void mainWindow.loadURL("http://localhost:5173");
         mainWindow.webContents.openDevTools();
     } else {
         const indexPath = path.join(__dirname, "../dist/index.html");
-        mainWindow.loadFile(indexPath);
+        void mainWindow.loadFile(indexPath);
     }
 
     mainWindow.on("closed", () => {
@@ -81,23 +93,21 @@ function createWindow(): void {
 }
 
 // IPC Handlers
-ipcMain.handle("electron:getPlatform", () => {
-    return process.platform;
-});
+ipcMain.handle("electron:getPlatform", () => process.platform);
+ipcMain.handle("electron:getAppVersion", () => app.getVersion());
 
-ipcMain.handle("electron:getAppVersion", () => {
-    return app.getVersion();
-});
-
-ipcMain.handle("electron:openExternalUrl", async (_event, url: unknown) => {
-    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("mailto:"))) {
+async function handleOpenExternal(_event: Electron.IpcMainInvokeEvent, url: unknown): Promise<boolean> {
+    if (isSafeHttpUrl(url)) {
         await shell.openExternal(url);
         return true;
     }
     return false;
-});
+}
 
-// App Lifecycle
+ipcMain.handle("electron:openExternal", handleOpenExternal);
+ipcMain.handle("electron:openExternalUrl", handleOpenExternal);
+
+// Standard lifecycle for Windows, Linux, and macOS
 app.whenReady().then(() => {
     createWindow();
 

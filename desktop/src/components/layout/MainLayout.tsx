@@ -7,14 +7,35 @@ export const MainLayout: React.FC = () => {
     const location = useLocation();
 
     const getPageTitle = (path: string): string => {
-        if (path === "/" || path.startsWith("/dashboard")) return "Tổng quan học tập";
+        if (path === "/" || path === "/dashboard" || path === "/teacher/dashboard") return "Tổng quan";
         if (path.startsWith("/courses/")) return "Chi tiết khóa học";
-        if (path === "/courses") return "Khóa học của tôi";
+        if (path === "/courses" || path === "/ai-materials") return "Khóa học & Tài liệu học tập";
         if (path.startsWith("/materials/")) return "Không gian học tập AI";
+        if (path.startsWith("/flashcards/") && path.includes("/review")) return "Ôn tập Flashcards SM-2";
+        if (path === "/flashcards") return "Bộ thẻ Flashcards (SM-2)";
+        if (path.startsWith("/tests/") && path.includes("/take")) return "Làm bài kiểm tra định thời";
+        if (path.startsWith("/tests/") && path.includes("/results")) return "Kết quả bài kiểm tra cả lớp";
+        if (path === "/tests") return "Danh sách bài kiểm tra";
         if (path.includes("/take")) return "Làm bài thi trắc nghiệm";
         if (path.startsWith("/attempts/")) return "Kết quả & Giải thích bài thi";
         if (path === "/history") return "Lịch sử luyện tập";
+        if (path.startsWith("/assignments/") && path.length > 13) return "Chi tiết bài tập & Nộp bài";
+        if (path === "/assignments") return "Danh sách bài tập";
+        if (path.startsWith("/classes/") && path.length > 9) return "Chi tiết lớp học phần";
+        if (path === "/classes" || path === "/my-classes") return "Lớp học phần";
         if (path === "/profile") return "Hồ sơ cá nhân";
+        if (path.startsWith("/notifications/settings")) return "Cài đặt thông báo";
+        if (path.startsWith("/notifications")) return "Thông báo";
+        if (path.startsWith("/messages")) return "Tin nhắn thời gian thực";
+        if (path.startsWith("/study-plan")) return "Kế hoạch học tập & Mục tiêu";
+        if (path.startsWith("/meetings")) return "Cuộc họp & Giảng dạy trực tuyến";
+        if (path.startsWith("/class-statistics")) return "Thống kê lớp học";
+        if (path.startsWith("/admin/users")) return "Quản lý người dùng";
+        if (path.startsWith("/admin/classes")) return "Quản lý lớp học";
+        if (path.startsWith("/admin/reports")) return "Báo cáo & Nhật ký hệ thống";
+        if (path.startsWith("/admin/settings")) return "Cấu hình hệ thống";
+        if (path.includes("schedule") || path.includes("calendar")) return "Lịch học tổng hợp & Sự kiện";
+        if (path.includes("report") || path.includes("statistic")) return "Báo cáo và thống kê";
         return "AI Study Assistant";
     };
 

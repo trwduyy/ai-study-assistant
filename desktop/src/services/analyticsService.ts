@@ -2,8 +2,10 @@ import apiClient from "./apiClient";
 import {
     AnalyticsOverview,
     ApiResponse,
-    CourseAnalytics,
-    ReviewRecommendation
+    FrequentMistake,
+    ReviewTopic,
+    ScoreTrendItem,
+    StudentDashboardData
 } from "../types";
 
 export const analyticsService = {
@@ -12,13 +14,35 @@ export const analyticsService = {
         return response.data.data;
     },
 
-    async getCourseAnalytics(courseId: number): Promise<CourseAnalytics> {
-        const response = await apiClient.get<ApiResponse<CourseAnalytics>>(`/analytics/courses/${courseId}`);
+    async getScoreTrend(from?: string, to?: string, courseId?: number): Promise<ScoreTrendItem[]> {
+        const params: Record<string, string | number> = {};
+        if (from) params.from = from;
+        if (to) params.to = to;
+        if (courseId) params.courseId = courseId;
+
+        const response = await apiClient.get<ApiResponse<ScoreTrendItem[]>>("/analytics/score-trend", {
+            params
+        });
         return response.data.data;
     },
 
-    async getReviewRecommendations(): Promise<ReviewRecommendation[]> {
-        const response = await apiClient.get<ApiResponse<ReviewRecommendation[]>>("/analytics/review-recommendations");
+    async getFrequentMistakes(courseId?: number, limit = 10): Promise<FrequentMistake[]> {
+        const params: Record<string, number> = { limit };
+        if (courseId) params.courseId = courseId;
+
+        const response = await apiClient.get<ApiResponse<FrequentMistake[]>>("/analytics/frequent-mistakes", {
+            params
+        });
+        return response.data.data;
+    },
+
+    async getReviewTopics(): Promise<ReviewTopic[]> {
+        const response = await apiClient.get<ApiResponse<ReviewTopic[]>>("/analytics/review-topics");
+        return response.data.data;
+    },
+
+    async getStudentDashboard(): Promise<StudentDashboardData> {
+        const response = await apiClient.get<ApiResponse<StudentDashboardData>>("/dashboard/student");
         return response.data.data;
     }
 };

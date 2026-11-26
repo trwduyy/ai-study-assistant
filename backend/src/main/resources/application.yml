@@ -70,7 +70,10 @@ app:
     gemini:
         api-key: ${GEMINI_API_KEY:}
         model: ${GEMINI_MODEL:gemini-4-hydrogen}
+        embedding-model: ${GEMINI_EMBEDDING_MODEL:text-embedding-004}
         timeout-seconds: 60
+    rag:
+        min-score: ${RAG_MIN_SCORE:0.45}
     upload:
         dir: ${UPLOAD_DIR:uploads}
     mail:

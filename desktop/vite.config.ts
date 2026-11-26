@@ -41,6 +41,9 @@ function electronBuilderPlugin(): Plugin {
 
 export default defineConfig({
     base: "./",
+    define: {
+        global: "globalThis"
+    },
     plugins: [
         react(),
         electronBuilderPlugin()

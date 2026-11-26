@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
         } else {
             log.warn("[traceId={}] Business error [{}]: {}", traceId, code.name(), ex.getMessage());
         }
-        return buildErrorResponse(code, ex.getMessage(), ex.getFields(), traceId);
+        return buildErrorResponse(code, ex.getMessage(), ex.getFields(), traceId, ex.getRetryAfterSeconds());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -218,9 +219,20 @@ public class GlobalExceptionHandler {
             String message,
             List<FieldErrorDetail> fields,
             String traceId) {
-        return ResponseEntity
-                .status(code.getStatus())
-                .body(ApiResponse.error(code, message, fields, traceId));
+        return buildErrorResponse(code, message, fields, traceId, null);
+    }
+
+    private ResponseEntity<ApiResponse<Void>> buildErrorResponse(
+            ErrorCode code,
+            String message,
+            List<FieldErrorDetail> fields,
+            String traceId,
+            Long retryAfterSeconds) {
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(code.getStatus());
+        if (retryAfterSeconds != null && retryAfterSeconds > 0) {
+            builder.header(HttpHeaders.RETRY_AFTER, String.valueOf(retryAfterSeconds));
+        }
+        return builder.body(ApiResponse.error(code, message, fields, traceId));
     }
 
     private FieldErrorDetail toFieldError(FieldError error) {

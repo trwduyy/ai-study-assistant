@@ -19,12 +19,13 @@ import org.springframework.web.client.RestClientResponseException;
 import java.net.SocketTimeoutException;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * RestClient-based Gemini REST API integration with configurable 60s timeout and bounded network/5xx retries.
+ * RestClient-based Gemini REST API integration with configurable timeout, retries, generation, and embeddings.
  * Callers must invoke this service strictly outside database transactions.
  */
 @Slf4j
@@ -36,6 +37,7 @@ public class GeminiClientServiceImpl implements GeminiClientService {
 
     private final String apiKey;
     private final String model;
+    private final String embeddingModel;
     private final long retryBackoffMs;
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
@@ -44,11 +46,13 @@ public class GeminiClientServiceImpl implements GeminiClientService {
     public GeminiClientServiceImpl(
             @Value("${app.gemini.api-key:}") String apiKey,
             @Value("${app.gemini.model:gemini-4-hydrogen}") String model,
+            @Value("${app.gemini.embedding-model:text-embedding-004}") String embeddingModel,
             @Value("${app.gemini.timeout-seconds:60}") int timeoutSeconds,
             @Value("${app.gemini.retry-backoff-ms:1500}") long retryBackoffMs,
             ObjectMapper objectMapper) {
         this.apiKey = apiKey != null ? apiKey.trim() : "";
         this.model = StringUtils.hasText(model) ? model.trim() : "gemini-4-hydrogen";
+        this.embeddingModel = StringUtils.hasText(embeddingModel) ? embeddingModel.trim() : "text-embedding-004";
         this.retryBackoffMs = Math.max(0L, retryBackoffMs);
         this.objectMapper = objectMapper;
 
@@ -68,8 +72,19 @@ public class GeminiClientServiceImpl implements GeminiClientService {
             long retryBackoffMs,
             RestClient restClient,
             ObjectMapper objectMapper) {
+        this(apiKey, model, "text-embedding-004", retryBackoffMs, restClient, objectMapper);
+    }
+
+    GeminiClientServiceImpl(
+            String apiKey,
+            String model,
+            String embeddingModel,
+            long retryBackoffMs,
+            RestClient restClient,
+            ObjectMapper objectMapper) {
         this.apiKey = apiKey != null ? apiKey.trim() : "";
         this.model = StringUtils.hasText(model) ? model.trim() : "gemini-4-hydrogen";
+        this.embeddingModel = StringUtils.hasText(embeddingModel) ? embeddingModel.trim() : "text-embedding-004";
         this.retryBackoffMs = Math.max(0L, retryBackoffMs);
         this.restClient = restClient;
         this.objectMapper = objectMapper;
@@ -86,16 +101,60 @@ public class GeminiClientServiceImpl implements GeminiClientService {
     }
 
     @Override
+    public String getEmbeddingModel() {
+        return embeddingModel;
+    }
+
+    @Override
     public String generateText(String systemPrompt, String userPrompt) {
         Map<String, Object> requestPayload = buildRequestPayload(systemPrompt, userPrompt, false, null);
-        return executeWithRetry(requestPayload);
+        String url = String.format("%s/%s:generateContent?key=%s", GEMINI_API_BASE_URL, model, apiKey);
+        String responseBody = executePostWithRetry(url, model, requestPayload);
+        return extractTextFromResponse(responseBody);
     }
 
     @Override
     public String generateStructuredJson(String systemPrompt, String userPrompt, Map<String, Object> jsonSchema) {
         Map<String, Object> requestPayload = buildRequestPayload(systemPrompt, userPrompt, true, jsonSchema);
-        String responseText = executeWithRetry(requestPayload);
-        return cleanJsonOutput(responseText);
+        String url = String.format("%s/%s:generateContent?key=%s", GEMINI_API_BASE_URL, model, apiKey);
+        String responseBody = executePostWithRetry(url, model, requestPayload);
+        return cleanJsonOutput(extractTextFromResponse(responseBody));
+    }
+
+    @Override
+    public float[] embedText(String text) {
+        if (!StringUtils.hasText(text)) {
+            return new float[0];
+        }
+        Map<String, Object> payload = Map.of(
+                "model", "models/" + embeddingModel,
+                "content", Map.of("parts", List.of(Map.of("text", text)))
+        );
+        String url = String.format("%s/%s:embedContent?key=%s", GEMINI_API_BASE_URL, embeddingModel, apiKey);
+        String responseBody = executePostWithRetry(url, embeddingModel, payload);
+        return extractSingleEmbedding(responseBody);
+    }
+
+    @Override
+    public List<float[]> embedBatch(List<String> texts) {
+        if (texts == null || texts.isEmpty()) {
+            return List.of();
+        }
+        if (texts.size() == 1) {
+            return List.of(embedText(texts.get(0)));
+        }
+
+        List<Map<String, Object>> requests = texts.stream()
+                .map(text -> Map.<String, Object>of(
+                        "model", "models/" + embeddingModel,
+                        "content", Map.of("parts", List.of(Map.of("text", text != null ? text : "")))
+                ))
+                .toList();
+        Map<String, Object> payload = Map.of("requests", requests);
+
+        String url = String.format("%s/%s:batchEmbedContents?key=%s", GEMINI_API_BASE_URL, embeddingModel, apiKey);
+        String responseBody = executePostWithRetry(url, embeddingModel, payload);
+        return extractBatchEmbeddings(responseBody, texts.size());
     }
 
     private Map<String, Object> buildRequestPayload(
@@ -117,7 +176,6 @@ public class GeminiClientServiceImpl implements GeminiClientService {
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", isJsonOutput ? 0.2 : 0.4);
         generationConfig.put("maxOutputTokens", 8192);
-
         if (isJsonOutput) {
             generationConfig.put("responseMimeType", "application/json");
             if (jsonSchema != null && !jsonSchema.isEmpty()) {
@@ -129,7 +187,7 @@ public class GeminiClientServiceImpl implements GeminiClientService {
         return payload;
     }
 
-    private String executeWithRetry(Map<String, Object> requestPayload) {
+    private String executePostWithRetry(String url, String targetModel, Map<String, Object> requestPayload) {
         if (!isConfigured()) {
             throw new AppException(
                     ErrorCode.AI_PROVIDER_ERROR,
@@ -137,21 +195,17 @@ public class GeminiClientServiceImpl implements GeminiClientService {
             );
         }
 
-        String url = String.format("%s/%s:generateContent?key=%s", GEMINI_API_BASE_URL, model, apiKey);
         int attempts = 0;
-
         while (attempts <= MAX_RETRIES) {
             attempts++;
             try {
-                log.info("Calling Gemini model '{}' (attempt {}/{})", model, attempts, MAX_RETRIES + 1);
-                String responseBody = restClient.post()
+                log.info("Calling Gemini model '{}' (attempt {}/{})", targetModel, attempts, MAX_RETRIES + 1);
+                return restClient.post()
                         .uri(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(requestPayload)
                         .retrieve()
                         .body(String.class);
-
-                return extractTextFromResponse(responseBody);
 
             } catch (RestClientResponseException ex) {
                 int statusCode = ex.getStatusCode().value();
@@ -205,6 +259,62 @@ public class GeminiClientServiceImpl implements GeminiClientService {
         }
 
         throw new AppException(ErrorCode.AI_PROVIDER_ERROR);
+    }
+
+    private float[] extractSingleEmbedding(String responseJson) {
+        if (!StringUtils.hasText(responseJson)) {
+            throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Dịch vụ embedding trả về phản hồi rỗng.");
+        }
+        try {
+            JsonNode root = objectMapper.readTree(responseJson);
+            JsonNode values = root.path("embedding").path("values");
+            float[] vector = toFloatArray(values);
+            if (vector.length == 0) {
+                throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Vector embedding từ AI bị rỗng.");
+            }
+            return vector;
+        } catch (AppException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Không thể đọc vector embedding từ dịch vụ AI.");
+        }
+    }
+
+    private List<float[]> extractBatchEmbeddings(String responseJson, int expectedCount) {
+        if (!StringUtils.hasText(responseJson)) {
+            throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Dịch vụ batch embedding trả về phản hồi rỗng.");
+        }
+        try {
+            JsonNode root = objectMapper.readTree(responseJson);
+            JsonNode embeddingsNode = root.path("embeddings");
+            if (!embeddingsNode.isArray() || embeddingsNode.size() != expectedCount) {
+                throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Số lượng vector embedding trả về không khớp.");
+            }
+            List<float[]> vectors = new ArrayList<>(expectedCount);
+            for (JsonNode item : embeddingsNode) {
+                float[] vector = toFloatArray(item.path("values"));
+                if (vector.length == 0) {
+                    throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Vector embedding trong batch bị rỗng.");
+                }
+                vectors.add(vector);
+            }
+            return vectors;
+        } catch (AppException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new AppException(ErrorCode.AI_OUTPUT_INVALID, "Không thể đọc batch vector embedding từ dịch vụ AI.");
+        }
+    }
+
+    private float[] toFloatArray(JsonNode valuesNode) {
+        if (!valuesNode.isArray() || valuesNode.isEmpty()) {
+            return new float[0];
+        }
+        float[] result = new float[valuesNode.size()];
+        for (int i = 0; i < valuesNode.size(); i++) {
+            result[i] = (float) valuesNode.get(i).asDouble();
+        }
+        return result;
     }
 
     private void sleepBackoff(int attempt) {

@@ -51,7 +51,8 @@ public class NotificationServiceImpl implements NotificationService {
             "CLASS_EVENT_CREATED",
             "CLASS_EVENT_UPDATED",
             "CLASS_EVENT_CANCELLED",
-            "EVENT_REMINDER_30M"
+            "EVENT_REMINDER_30M",
+            "TASK_REMINDER"
     );
 
     private final NotificationRepository notificationRepository;

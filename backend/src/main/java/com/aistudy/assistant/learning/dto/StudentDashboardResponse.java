@@ -3,9 +3,13 @@ package com.aistudy.assistant.learning.dto;
 import com.aistudy.assistant.schedule.entity.EventSource;
 import com.aistudy.assistant.schedule.entity.EventStatus;
 import com.aistudy.assistant.schedule.entity.EventType;
+import com.aistudy.assistant.schedule.entity.GoalPriority;
+import com.aistudy.assistant.schedule.entity.GoalStatus;
+import com.aistudy.assistant.schedule.entity.TaskStatus;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 public record StudentDashboardResponse(
@@ -15,7 +19,9 @@ public record StudentDashboardResponse(
         List<UpcomingEventSummary> upcomingEvents,
         List<DueAssignmentSummary> dueAssignments,
         long unreadNotificationCount,
-        List<Object> todayTasks
+        List<TodayTaskSummary> todayTasks,
+        List<ActiveGoalSummary> activeGoals,
+        long dueFlashcardsCount
 ) {
     public record DashboardOverviewSummary(
             long totalCourses,
@@ -66,6 +72,27 @@ public record StudentDashboardResponse(
             Instant dueAt,
             Boolean allowLate,
             BigDecimal maxScore
+    ) {
+    }
+
+    public record TodayTaskSummary(
+            Long taskId,
+            Long goalId,
+            String title,
+            LocalDate taskDate,
+            GoalPriority priority,
+            TaskStatus status,
+            Instant remindAt
+    ) {
+    }
+
+    public record ActiveGoalSummary(
+            Long goalId,
+            String title,
+            String subject,
+            LocalDate dueDate,
+            GoalPriority priority,
+            GoalStatus status
     ) {
     }
 }

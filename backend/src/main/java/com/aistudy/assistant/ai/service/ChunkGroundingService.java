@@ -121,6 +121,36 @@ public class ChunkGroundingService {
         return score;
     }
 
+    /**
+     * Computes a normalized lexical relevance score in {@code [0.0, 1.0]} for hybrid RAG ranking.
+     */
+    public double normalizedKeywordScore(String query, String content) {
+        if (!StringUtils.hasText(query) || !StringUtils.hasText(content)) {
+            return 0.0;
+        }
+        List<String> keywords = extractKeywords(query);
+        if (keywords.isEmpty()) {
+            return 0.0;
+        }
+        String normalizedQuery = normalizeText(query);
+        String normalizedContent = normalizeText(content);
+        if (normalizedContent.isEmpty()) {
+            return 0.0;
+        }
+
+        int distinctMatches = 0;
+        for (String keyword : keywords) {
+            if (normalizedContent.contains(keyword)) {
+                distinctMatches++;
+            }
+        }
+        double coverage = (double) distinctMatches / keywords.size();
+        if (normalizedQuery.length() >= 8 && normalizedContent.contains(normalizedQuery)) {
+            coverage = Math.min(1.0, coverage + 0.25);
+        }
+        return coverage;
+    }
+
     private int countSubstringOccurrences(String haystack, String needle) {
         int count = 0;
         int index = 0;

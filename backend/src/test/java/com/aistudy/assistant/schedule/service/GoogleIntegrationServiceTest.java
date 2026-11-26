@@ -1,5 +1,6 @@
 package com.aistudy.assistant.schedule.service;
 
+import com.aistudy.assistant.admin.service.SystemSettingService;
 import com.aistudy.assistant.common.exception.AppException;
 import com.aistudy.assistant.common.exception.ErrorCode;
 import com.aistudy.assistant.common.security.TokenEncryptionService;
@@ -66,6 +67,8 @@ class GoogleIntegrationServiceTest {
     private GoogleCalendarClient googleCalendarClient;
     @Mock
     private TransactionTemplate transactionTemplate;
+    @Mock
+    private SystemSettingService systemSettingService;
 
     private TokenEncryptionService tokenEncryptionService;
     private GoogleOAuthStateService stateService;
@@ -89,9 +92,16 @@ class GoogleIntegrationServiceTest {
                 tokenEncryptionService,
                 stateService,
                 googleCalendarClient,
-                transactionTemplate
+                transactionTemplate,
+                systemSettingService
         );
         ReflectionTestUtils.setField(googleIntegrationService, "allowPersonalAccounts", false);
+        org.mockito.Mockito.lenient()
+                .when(systemSettingService.getBooleanSetting(
+                        org.mockito.ArgumentMatchers.eq(SystemSettingService.KEY_GOOGLE_ALLOW_PERSONAL_ACCOUNTS),
+                        org.mockito.ArgumentMatchers.anyBoolean()
+                ))
+                .thenAnswer(inv -> inv.getArgument(1));
 
         orgUser = User.builder()
                 .id(11L)
@@ -231,6 +241,22 @@ class GoogleIntegrationServiceTest {
         assertSame(persistedEvent, secondBatch.get(0), "Second sync must reuse existing Event record instead of inserting a duplicate");
         assertEquals("Lịch Google đã cập nhật", persistedEvent.getTitle());
         assertEquals(Instant.parse("2026-11-28T02:00:00Z"), persistedEvent.getStartAt());
+    }
+
+    @Test
+    @DisplayName("authorize allows personal email when GOOGLE_ALLOW_PERSONAL_ACCOUNTS setting is dynamically true")
+    void authorize_PersonalEmailAllowedByDynamicSetting_Succeeds() {
+        authenticateAs(personalUser);
+        when(userRepository.findById(12L)).thenReturn(Optional.of(personalUser));
+        when(systemSettingService.getBooleanSetting(
+                org.mockito.ArgumentMatchers.eq(SystemSettingService.KEY_GOOGLE_ALLOW_PERSONAL_ACCOUNTS),
+                org.mockito.ArgumentMatchers.anyBoolean()
+        )).thenReturn(true);
+        when(googleCalendarClient.buildAuthorizeUrl(org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn("https://accounts.google.com/o/oauth2/v2/auth?state=ok");
+
+        GoogleAuthorizeResponse response = googleIntegrationService.authorize();
+        assertTrue(response.authorizeUrl().startsWith("https://accounts.google.com/"));
     }
 
     private void authenticateAs(User user) {

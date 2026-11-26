@@ -1,5 +1,8 @@
 package com.aistudy.assistant.ai.service;
 
+import com.aistudy.assistant.admin.entity.Report;
+import com.aistudy.assistant.admin.entity.ReportStatus;
+import com.aistudy.assistant.admin.repository.ReportRepository;
 import com.aistudy.assistant.ai.dto.AiFeedbackResponse;
 import com.aistudy.assistant.ai.dto.CreateAiFeedbackRequest;
 import com.aistudy.assistant.ai.entity.AiFeedback;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AiFeedbackServiceImpl implements AiFeedbackService {
 
     private final AiFeedbackRepository aiFeedbackRepository;
+    private final ReportRepository reportRepository;
     private final AiChatMessageRepository aiChatMessageRepository;
     private final AiSummaryRepository aiSummaryRepository;
     private final QuizRepository quizRepository;
@@ -38,14 +42,25 @@ public class AiFeedbackServiceImpl implements AiFeedbackService {
         validateTargetOwnership(request, userId);
 
         User user = userRepository.getReferenceById(userId);
+        String reason = request.reason().trim();
         AiFeedback feedback = AiFeedback.builder()
                 .user(user)
                 .targetType(request.targetType())
                 .targetId(request.targetId())
-                .reason(request.reason().trim())
+                .reason(reason)
                 .status(FeedbackStatus.OPEN)
                 .build();
         feedback = aiFeedbackRepository.save(feedback);
+
+        reportRepository.save(Report.builder()
+                .reporter(user)
+                .type("AI_INACCURATE")
+                .targetType(request.targetType().name())
+                .targetId(request.targetId())
+                .detail(reason)
+                .status(ReportStatus.OPEN)
+                .build());
+
         return aiMapper.toFeedbackResponse(feedback);
     }
 

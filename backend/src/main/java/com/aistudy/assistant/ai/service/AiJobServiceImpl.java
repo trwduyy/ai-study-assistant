@@ -1,12 +1,15 @@
 package com.aistudy.assistant.ai.service;
 
+import com.aistudy.assistant.admin.service.AiQuotaService;
 import com.aistudy.assistant.ai.dto.AiJobAcceptedResponse;
 import com.aistudy.assistant.ai.dto.AiJobCancelResponse;
 import com.aistudy.assistant.ai.dto.AiJobResponse;
 import com.aistudy.assistant.ai.dto.AiSummaryResponse;
 import com.aistudy.assistant.ai.dto.CreateExplanationRequest;
 import com.aistudy.assistant.ai.dto.CreateSummaryRequest;
+import com.aistudy.assistant.ai.dto.GenerateAiFlashcardsRequest;
 import com.aistudy.assistant.ai.dto.GenerateAiQuizRequest;
+import com.aistudy.assistant.ai.dto.GenerateStudyPlanRequest;
 import com.aistudy.assistant.ai.entity.AiJob;
 import com.aistudy.assistant.ai.entity.AiJobStatus;
 import com.aistudy.assistant.ai.entity.AiJobType;
@@ -27,10 +30,14 @@ import com.aistudy.assistant.learning.entity.MaterialStatus;
 import com.aistudy.assistant.learning.entity.QuestionType;
 import com.aistudy.assistant.learning.entity.QuizDifficulty;
 import com.aistudy.assistant.learning.entity.Topic;
+import com.aistudy.assistant.learning.flashcard.entity.FlashcardDeck;
+import com.aistudy.assistant.learning.flashcard.repository.FlashcardDeckRepository;
 import com.aistudy.assistant.learning.repository.CourseRepository;
 import com.aistudy.assistant.learning.repository.MaterialChunkRepository;
 import com.aistudy.assistant.learning.repository.MaterialRepository;
 import com.aistudy.assistant.learning.repository.TopicRepository;
+import com.aistudy.assistant.schedule.entity.Goal;
+import com.aistudy.assistant.schedule.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -54,8 +61,11 @@ public class AiJobServiceImpl implements AiJobService {
     private final TopicRepository topicRepository;
     private final MaterialRepository materialRepository;
     private final MaterialChunkRepository materialChunkRepository;
+    private final FlashcardDeckRepository flashcardDeckRepository;
+    private final GoalRepository goalRepository;
     private final AiMapper aiMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final AiQuotaService aiQuotaService;
 
     @Override
     @Transactional(readOnly = true)
@@ -187,7 +197,87 @@ public class AiJobServiceImpl implements AiJobService {
         return queueJob(userId, AiJobType.QUIZ, input);
     }
 
+    @Override
+    @Transactional
+    public AiJobAcceptedResponse requestFlashcardGeneration(GenerateAiFlashcardsRequest request) {
+        Long userId = SecurityUtils.currentUserId();
+
+        if (request.deckId() != null) {
+            FlashcardDeck deck = flashcardDeckRepository.findWithDetailsById(request.deckId())
+                    .orElseThrow(() -> new AppException(ErrorCode.FLASHCARD_DECK_NOT_FOUND));
+            if (!deck.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+        }
+        if (request.courseId() != null) {
+            Course course = courseRepository.findByIdAndDeletedAtIsNull(request.courseId())
+                    .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+            if (!course.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+        }
+
+        List<Long> distinctMaterialIds = request.materialIds().stream().distinct().toList();
+        List<Material> materials = materialRepository.findByIdInAndDeletedAtIsNull(distinctMaterialIds);
+        if (materials.size() != distinctMaterialIds.size()) {
+            throw new AppException(ErrorCode.MATERIAL_NOT_FOUND);
+        }
+        Map<Long, Material> byId = materials.stream().collect(Collectors.toMap(Material::getId, m -> m));
+        for (Long materialId : distinctMaterialIds) {
+            Material material = byId.get(materialId);
+            if (!material.getOwner().getId().equals(userId)) {
+                throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+            }
+            if (material.getStatus() != MaterialStatus.EXTRACTED
+                    || materialChunkRepository.countByMaterialId(materialId) == 0) {
+                throw new AppException(ErrorCode.TEXT_NOT_EXTRACTED);
+            }
+        }
+
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("materialIds", distinctMaterialIds);
+        input.put("deckId", request.deckId());
+        input.put("deckTitle", request.deckTitle() != null ? request.deckTitle().trim() : null);
+        input.put("courseId", request.courseId());
+        input.put("cardCount", request.cardCount() != null ? request.cardCount() : 10);
+
+        return queueJob(userId, AiJobType.FLASHCARD, input);
+    }
+
+    @Override
+    @Transactional
+    public AiJobAcceptedResponse requestStudyPlan(GenerateStudyPlanRequest request) {
+        Long userId = SecurityUtils.currentUserId();
+        Goal goal = goalRepository.findById(request.goalId())
+                .orElseThrow(() -> new AppException(ErrorCode.GOAL_NOT_FOUND));
+        if (!goal.getUser().getId().equals(userId)) {
+            throw new AppException(ErrorCode.NOT_RESOURCE_OWNER);
+        }
+
+        java.time.LocalDate fromDate = request.fromDate() != null
+                ? request.fromDate()
+                : java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        java.time.LocalDate toDate = request.toDate() != null
+                ? request.toDate()
+                : fromDate.plusDays(6);
+
+        if (toDate.isBefore(fromDate)) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR, "Ngày kết thúc (toDate) không được trước ngày bắt đầu (fromDate).");
+        }
+        if (java.time.temporal.ChronoUnit.DAYS.between(fromDate, toDate) > 31) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR, "Khoảng thời gian lập lộ trình tối đa là 31 ngày.");
+        }
+
+        Map<String, Object> input = new LinkedHashMap<>();
+        input.put("goalId", goal.getId());
+        input.put("fromDate", fromDate.toString());
+        input.put("toDate", toDate.toString());
+
+        return queueJob(userId, AiJobType.PLAN, input);
+    }
+
     private AiJobAcceptedResponse queueJob(Long userId, AiJobType type, Map<String, Object> input) {
+        aiQuotaService.checkAndEnforceDailyQuota(userId);
         User user = userRepository.getReferenceById(userId);
         AiJob job = AiJob.builder()
                 .id(UUID.randomUUID().toString())

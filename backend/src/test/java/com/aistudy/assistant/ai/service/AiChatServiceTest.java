@@ -1,5 +1,6 @@
 package com.aistudy.assistant.ai.service;
 
+import com.aistudy.assistant.admin.service.AiQuotaService;
 import com.aistudy.assistant.ai.dto.AiChatAnswerResponse;
 import com.aistudy.assistant.ai.dto.SendAiChatMessageRequest;
 import com.aistudy.assistant.ai.entity.AiMessageRole;
@@ -60,11 +61,23 @@ class AiChatServiceTest {
     private AiChatTxService aiChatTxService;
     @Mock
     private GeminiClientService geminiClientService;
+    @Mock
+    private com.aistudy.assistant.ai.repository.MaterialChunkEmbeddingRepository embeddingRepository;
+    @Mock
+    private AiQuotaService aiQuotaService;
 
     private AiChatServiceImpl aiChatService;
 
     @BeforeEach
     void setUp() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ChunkRetrieverService retrieverService = new HybridChunkRetrieverServiceImpl(
+                embeddingRepository,
+                geminiClientService,
+                new ChunkGroundingService(),
+                objectMapper,
+                0.45
+        );
         aiChatService = new AiChatServiceImpl(
                 aiChatRepository,
                 aiChatMessageRepository,
@@ -72,10 +85,11 @@ class AiChatServiceTest {
                 userRepository,
                 courseRepository,
                 aiChatTxService,
-                new ChunkGroundingService(),
+                retrieverService,
                 geminiClientService,
                 new AiMapper(),
-                new ObjectMapper()
+                objectMapper,
+                aiQuotaService
         );
 
         User student = User.builder()
