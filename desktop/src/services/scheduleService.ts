@@ -19,8 +19,9 @@ import {
 const GOOGLE_STATUS_STORAGE_PREFIX = "ai_study_google_calendar_status_";
 
 export function openExternalBrowserUrl(url: string): void {
-    if (window.electronAPI?.openExternalUrl) {
-        void window.electronAPI.openExternalUrl(url);
+    const openFn = window.electronAPI?.openExternal ?? window.electronAPI?.openExternalUrl;
+    if (openFn) {
+        void openFn(url);
         return;
     }
     window.open(url, "_blank", "noopener,noreferrer");

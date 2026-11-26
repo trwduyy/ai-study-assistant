@@ -1,6 +1,7 @@
 import React from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { Toaster } from "sonner";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -26,12 +27,25 @@ import TestsListPage from "./pages/TestsListPage";
 import ClassTestTakePage from "./pages/ClassTestTakePage";
 import ClassTestResultsPage from "./pages/ClassTestResultsPage";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage";
+import TeacherMeetingsPage from "./pages/TeacherMeetingsPage";
+import ClassStatisticsPage from "./pages/ClassStatisticsPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import CalendarPage from "./pages/CalendarPage";
 import StudyPlanPage from "./pages/StudyPlanPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
-import { Toaster } from "sonner";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminClassesPage from "./pages/admin/AdminClassesPage";
+import AdminGovernancePage from "./pages/admin/AdminGovernancePage";
+import ForbiddenPage from "./pages/ForbiddenPage";
+import NotFoundPage from "./pages/NotFoundPage";
+
+const RoleHomeRedirect: React.FC = () => {
+    const { user } = useAuth();
+    if (user?.role === "ADMIN") {
+        return <Navigate to="/admin/users" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+};
 
 const App: React.FC = () => {
     return (
@@ -46,9 +60,16 @@ const App: React.FC = () => {
 
                             {/* Protected Routes inside MainLayout */}
                             <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-                                <Route index element={<Navigate to="/dashboard" replace />} />
+                                <Route index element={<RoleHomeRedirect />} />
                                 <Route path="dashboard" element={<DashboardPage />} />
-                                <Route path="teacher/dashboard" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><TeacherDashboardPage /></ProtectedRoute>} />
+                                <Route
+                                    path="teacher/dashboard"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <TeacherDashboardPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
                                 <Route path="courses" element={<CoursesPage />} />
                                 <Route path="courses/:courseId" element={<CourseDetailPage />} />
                                 <Route path="materials/:materialId" element={<MaterialStudyPage />} />
@@ -63,12 +84,51 @@ const App: React.FC = () => {
                                 {/* Classroom & Assignment Modules (FE-2A) */}
                                 <Route path="classes" element={<ClassesPage />} />
                                 <Route path="classes/:classId" element={<ClassDetailPage />} />
-                                <Route path="my-classes" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><ClassesPage /></ProtectedRoute>} />
+                                <Route
+                                    path="my-classes"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <ClassesPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
                                 <Route path="assignments" element={<AssignmentsListPage />} />
                                 <Route path="assignments/:assignmentId" element={<AssignmentDetailPage />} />
-                                <Route path="tests" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><TestsListPage /></ProtectedRoute>} />
+                                <Route
+                                    path="tests"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <TestsListPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
                                 <Route path="tests/:testId/take" element={<ClassTestTakePage />} />
-                                <Route path="tests/:testId/results" element={<ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}><ClassTestResultsPage /></ProtectedRoute>} />
+                                <Route
+                                    path="tests/:testId/results"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <ClassTestResultsPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                {/* Teacher Meetings & Statistics (FE-3B) */}
+                                <Route
+                                    path="meetings"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <TeacherMeetingsPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="class-statistics"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["TEACHER", "ADMIN"]}>
+                                            <ClassStatisticsPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
                                 {/* Real-time Chat & Notification Modules (FE-2B) */}
                                 <Route path="messages" element={<MessagesPage />} />
@@ -81,17 +141,60 @@ const App: React.FC = () => {
                                 <Route path="calendar" element={<CalendarPage />} />
                                 <Route path="study-plan" element={<StudyPlanPage />} />
 
-                                {/* Remaining Phased Placeholders */}
-                                <Route path="meetings" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Cuộc họp" description="Quản lý cuộc họp, lịch học trực tuyến và liên kết tham gia." /></ProtectedRoute>} />
-                                <Route path="class-statistics" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Thống kê lớp" description="Theo dõi tiến độ, điểm số và mức độ tham gia của lớp." /></ProtectedRoute>} />
-                                <Route path="users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Người dùng" description="Quản lý tài khoản, trạng thái và vai trò người dùng." /></ProtectedRoute>} />
-                                <Route path="admin/classes" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Lớp học" description="Giám sát danh sách lớp và cấu hình quản trị." /></ProtectedRoute>} />
-                                <Route path="reports" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Báo cáo" description="Tổng hợp báo cáo vận hành và học tập." /></ProtectedRoute>} />
-                                <Route path="settings" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Cấu hình" description="Thiết lập cấu hình dùng chung của hệ thống." /></ProtectedRoute>} />
+                                {/* Admin Governance Routes (FE-3B) */}
+                                <Route
+                                    path="admin/users"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                            <AdminUsersPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="admin/classes"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                            <AdminClassesPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="admin/reports"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                            <AdminGovernancePage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="admin/settings"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                            <AdminGovernancePage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="admin/audit-logs"
+                                    element={
+                                        <ProtectedRoute allowedRoles={["ADMIN"]}>
+                                            <AdminGovernancePage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                {/* Legacy Admin path aliases */}
+                                <Route path="users" element={<Navigate to="/admin/users" replace />} />
+                                <Route path="reports" element={<Navigate to="/admin/reports" replace />} />
+                                <Route path="settings" element={<Navigate to="/admin/settings" replace />} />
+
+                                {/* Error Pages */}
+                                <Route path="403" element={<ForbiddenPage />} />
+                                <Route path="*" element={<NotFoundPage />} />
                             </Route>
 
                             {/* Fallback route */}
-                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                            <Route path="*" element={<RoleHomeRedirect />} />
                         </Routes>
                         <Toaster richColors position="top-right" closeButton />
                     </NotificationProvider>

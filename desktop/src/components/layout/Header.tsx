@@ -7,6 +7,7 @@ import {
     CircleAlert,
     Clock,
     ExternalLink,
+    Flag,
     LogOut,
     UserRound
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
+import ReportFeedbackDialog from "../common/ReportFeedbackDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -65,6 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ title = "Bảng điều khiển"
         openNotificationTarget
     } = useNotifications();
     const [isBellOpen, setIsBellOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleLogout = async (): Promise<void> => {
@@ -279,6 +282,13 @@ export const Header: React.FC<HeaderProps> = ({ title = "Bảng điều khiển"
                                     Cài đặt thông báo
                                 </Link>
                             </DropdownMenu.Item>
+                            <DropdownMenu.Item
+                                onSelect={() => setIsReportOpen(true)}
+                                className="flex cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-sm text-foreground outline-none hover:bg-muted"
+                            >
+                                <Flag className="h-4 w-4 text-amber-600" />
+                                Gửi báo cáo / Góp ý
+                            </DropdownMenu.Item>
                             <DropdownMenu.Separator className="my-1 h-px bg-border" />
                             <DropdownMenu.Item
                                 onSelect={() => void handleLogout()}
@@ -296,6 +306,7 @@ export const Header: React.FC<HeaderProps> = ({ title = "Bảng điều khiển"
                     <CircleAlert /> Kết nối trực tiếp gặp lỗi
                 </span>
             )}
+            <ReportFeedbackDialog open={isReportOpen} onOpenChange={setIsReportOpen} />
         </header>
     );
 };

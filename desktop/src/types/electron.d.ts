@@ -1,7 +1,9 @@
 export interface IElectronAPI {
+    platform: string;
     getPlatform: () => Promise<string>;
     getAppVersion: () => Promise<string>;
-    openExternalUrl: (url: string) => Promise<boolean>;
+    openExternal: (url: string) => Promise<boolean>;
+    openExternalUrl?: (url: string) => Promise<boolean>;
 }
 
 declare global {

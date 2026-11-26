@@ -3,6 +3,7 @@ export * from "./auth";
 export * from "./realtime";
 export * from "./classroom";
 export * from "./schedule";
+export * from "./admin";
 
 // =============================================================================
 // Learning & Curriculum V2 Types (Course, Chapter, Topic, Material)

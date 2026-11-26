@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { UserRole } from "../../types";
+import ForbiddenPage from "../../pages/ForbiddenPage";
 import { LoadingState } from "./LoadingState";
 
 interface ProtectedRouteProps {
@@ -15,7 +16,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background"><LoadingState label="Đang xác thực phiên làm việc..." /></div>
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <LoadingState label="Đang xác thực phiên làm việc..." />
+            </div>
         );
     }
 
@@ -24,7 +27,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     }
 
     if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
-        return <Navigate to="/dashboard" replace />;
+        return <ForbiddenPage />;
     }
 
     return children ? <>{children}</> : <Outlet />;

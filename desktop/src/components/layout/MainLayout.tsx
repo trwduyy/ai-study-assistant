@@ -28,6 +28,12 @@ export const MainLayout: React.FC = () => {
         if (path.startsWith("/notifications")) return "Thông báo";
         if (path.startsWith("/messages")) return "Tin nhắn thời gian thực";
         if (path.startsWith("/study-plan")) return "Kế hoạch học tập & Mục tiêu";
+        if (path.startsWith("/meetings")) return "Cuộc họp & Giảng dạy trực tuyến";
+        if (path.startsWith("/class-statistics")) return "Thống kê lớp học";
+        if (path.startsWith("/admin/users")) return "Quản lý người dùng";
+        if (path.startsWith("/admin/classes")) return "Quản lý lớp học";
+        if (path.startsWith("/admin/reports")) return "Báo cáo & Nhật ký hệ thống";
+        if (path.startsWith("/admin/settings")) return "Cấu hình hệ thống";
         if (path.includes("schedule") || path.includes("calendar")) return "Lịch học tổng hợp & Sự kiện";
         if (path.includes("report") || path.includes("statistic")) return "Báo cáo và thống kê";
         return "AI Study Assistant";
