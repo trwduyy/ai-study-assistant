@@ -117,6 +117,30 @@ export function extractFriendlyErrorMessage(error: unknown): string {
     return "Đã có lỗi xảy ra. Vui lòng thử lại sau.";
 }
 
+export class ApiRequestError extends Error {
+    public readonly status?: number;
+    public readonly code?: string;
+
+    constructor(message: string, status?: number, code?: string) {
+        super(message);
+        this.name = "ApiRequestError";
+        this.status = status;
+        this.code = code;
+    }
+}
+
+export function buildApiRequestError(error: unknown): ApiRequestError {
+    const message = extractFriendlyErrorMessage(error);
+    if (axios.isAxiosError<ApiResponse<null>>(error)) {
+        return new ApiRequestError(
+            message,
+            error.response?.status,
+            error.response?.data?.error?.code
+        );
+    }
+    return new ApiRequestError(message);
+}
+
 export function withIdempotencyKey(config: AxiosRequestConfig = {}): AxiosRequestConfig {
     const headers = AxiosHeaders.from(config.headers as Record<string, string> | undefined);
     if (!headers.has("Idempotency-Key")) {
@@ -179,7 +203,7 @@ apiClient.interceptors.response.use(
             if (!refreshToken) {
                 tokenStorage.clear();
                 redirectToLogin();
-                return Promise.reject(new Error(extractFriendlyErrorMessage(error)));
+                return Promise.reject(buildApiRequestError(error));
             }
 
             if (isRefreshing) {
@@ -237,7 +261,7 @@ apiClient.interceptors.response.use(
             redirectToLogin();
         }
 
-        return Promise.reject(new Error(extractFriendlyErrorMessage(error)));
+        return Promise.reject(buildApiRequestError(error));
     }
 );
 

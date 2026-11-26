@@ -24,8 +24,10 @@ export const MainLayout: React.FC = () => {
         if (path.startsWith("/classes/") && path.length > 9) return "Chi tiết lớp học phần";
         if (path === "/classes" || path === "/my-classes") return "Lớp học phần";
         if (path === "/profile") return "Hồ sơ cá nhân";
-        if (path.includes("schedule")) return "Lịch học";
-        if (path.includes("message")) return "Tin nhắn";
+        if (path.startsWith("/notifications/settings")) return "Cài đặt thông báo";
+        if (path.startsWith("/notifications")) return "Thông báo";
+        if (path.startsWith("/messages")) return "Tin nhắn thời gian thực";
+        if (path.includes("schedule") || path.includes("calendar")) return "Lịch học";
         if (path.includes("report") || path.includes("statistic")) return "Báo cáo và thống kê";
         return "AI Study Assistant";
     };

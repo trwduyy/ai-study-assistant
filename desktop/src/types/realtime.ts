@@ -21,7 +21,7 @@ export interface NotificationUnreadCount {
 }
 
 export interface NotificationSetting {
-    eventType: string;
+    type: string;
     inAppEnabled: boolean;
     emailEnabled: boolean;
 }
@@ -55,9 +55,33 @@ export interface AiJobResponse {
     finishedAt: string | null;
 }
 
-export type ChatMessageDeliveryStatus = "SENT" | "DELIVERED" | "READ";
+export type ConversationType = "CLASSROOM" | "DIRECT";
 
-export interface ChatRoomMessage {
+export interface ConversationLastMessage {
+    id: number;
+    senderId: number;
+    senderName: string;
+    content: string;
+    createdAt: string;
+}
+
+export interface Conversation {
+    id: number;
+    type: ConversationType;
+    classId: number | null;
+    title: string;
+    unreadCount: number;
+    lastMessage: ConversationLastMessage | null;
+    updatedAt: string;
+}
+
+export interface CreateDirectConversationRequest {
+    userId: number;
+}
+
+export type ChatMessageDeliveryStatus = "SENDING" | "SENT" | "DELIVERED" | "READ" | "FAILED";
+
+export interface ChatMessage {
     id: number;
     conversationId: number;
     senderId: number;
@@ -66,4 +90,17 @@ export interface ChatRoomMessage {
     status: ChatMessageDeliveryStatus;
     clientMessageId: string | null;
     createdAt: string;
+}
+
+export type ChatRoomMessage = ChatMessage;
+
+export interface SendMessageRequest {
+    clientMessageId: string;
+    content: string;
+}
+
+export interface ConversationReadStateResponse {
+    conversationId: number;
+    lastReadMessageId: number;
+    updatedAt: string;
 }
