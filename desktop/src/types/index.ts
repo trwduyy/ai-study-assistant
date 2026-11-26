@@ -2,6 +2,7 @@ export * from "./api";
 export * from "./auth";
 export * from "./realtime";
 export * from "./classroom";
+export * from "./schedule";
 
 // =============================================================================
 // Learning & Curriculum V2 Types (Course, Chapter, Topic, Material)
@@ -564,10 +565,20 @@ export interface StudentDashboardData {
         reason: string;
     }>;
     upcomingEvents: Array<{
-        id: number;
+        eventId?: number;
+        id?: number;
+        classId?: number | null;
+        className?: string | null;
+        type?: string;
         title: string;
-        startTime: string;
-        endTime: string;
+        startAt?: string;
+        endAt?: string;
+        startTime?: string;
+        endTime?: string;
+        timezone?: string;
+        status?: string;
+        meetingUrl?: string | null;
+        source?: string;
     }>;
     dueAssignments: Array<{
         assignmentId?: number;
@@ -583,9 +594,15 @@ export interface StudentDashboardData {
     }>;
     unreadNotificationCount: number;
     todayTasks: Array<{
-        id: number;
+        taskId?: number;
+        id?: number;
+        goalId?: number | null;
         title: string;
-        completed: boolean;
+        taskDate?: string;
         priority?: string;
+        status?: string;
+        completed?: boolean;
+        remindAt?: string | null;
     }>;
+    dueFlashcardsCount?: number;
 }

@@ -17,8 +17,11 @@ import {
     TrendingUp,
     Zap,
     ClipboardList,
-    ArrowRight
+    ClipboardCheck,
+    ArrowRight,
+    Video
 } from "lucide-react";
+import { toast } from "sonner";
 import {
     Area,
     AreaChart,
@@ -29,6 +32,8 @@ import {
     YAxis
 } from "recharts";
 import analyticsService from "../services/analyticsService";
+import planService from "../services/planService";
+import { openExternalBrowserUrl } from "../services/scheduleService";
 import {
     AnalyticsOverview,
     FrequentMistake,
@@ -61,6 +66,40 @@ export const DashboardPage: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [togglingTaskId, setTogglingTaskId] = useState<number | null>(null);
+
+    const handleToggleTodayTask = async (taskId: number, currentDone: boolean) => {
+        try {
+            setTogglingTaskId(taskId);
+            const updated = await planService.toggleTaskComplete(taskId, !currentDone);
+            setDashboard((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    todayTasks: prev.todayTasks.map((t) => {
+                        const tid = t.taskId ?? t.id;
+                        if (tid !== taskId) return t;
+                        return {
+                            ...t,
+                            status: updated.status,
+                            completed: updated.status === "DONE"
+                        };
+                    })
+                };
+            });
+            toast.success(
+                updated.status === "DONE"
+                    ? "Đã hoàn thành nhiệm vụ!"
+                    : "Đã chuyển lại trạng thái Cần làm."
+            );
+        } catch (err: unknown) {
+            toast.error(
+                err instanceof Error ? err.message : "Không thể cập nhật trạng thái nhiệm vụ."
+            );
+        } finally {
+            setTogglingTaskId(null);
+        }
+    };
 
     const fetchAllDashboardData = async () => {
         try {
@@ -294,6 +333,192 @@ export const DashboardPage: React.FC = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* 2-Columns: Upcoming 7 Days Events & Today's Tasks */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* Left: Upcoming Events (Next 7 days) */}
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+                        <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span>Lịch sắp tới 7 ngày</span>
+                        </CardTitle>
+                        <Link
+                            to="/calendar"
+                            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                        >
+                            <span>Xem lịch đầy đủ</span>
+                            <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </CardHeader>
+                    <CardContent className="p-5 space-y-3">
+                        {!dashboard?.upcomingEvents || dashboard.upcomingEvents.length === 0 ? (
+                            <p className="text-xs text-slate-400 py-6 text-center">
+                                Không có lịch học hoặc sự kiện nào trong 7 ngày tới.
+                            </p>
+                        ) : (
+                            dashboard.upcomingEvents.map((ev, idx) => {
+                                const evId = ev.eventId ?? ev.id ?? idx;
+                                const startStr = ev.startAt ?? ev.startTime ?? "";
+                                const endStr = ev.endAt ?? ev.endTime ?? "";
+                                const eventTypeLabel =
+                                    ev.type === "CLASS"
+                                        ? "Lịch lớp"
+                                        : ev.type === "TEST"
+                                        ? "Kiểm tra"
+                                        : ev.type === "MEETING"
+                                        ? "Cuộc họp"
+                                        : "Cá nhân";
+
+                                return (
+                                    <div
+                                        key={evId}
+                                        className="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-3 hover:border-slate-300 transition-colors"
+                                    >
+                                        <div className="min-w-0 space-y-1">
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <Badge variant="outline" className="text-[10px]">
+                                                    {eventTypeLabel}
+                                                </Badge>
+                                                {ev.className && (
+                                                    <Badge variant="secondary" className="text-[10px]">
+                                                        {ev.className}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-xs font-bold text-slate-900 line-clamp-1">
+                                                {ev.title}
+                                            </p>
+                                            {startStr && (
+                                                <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3 shrink-0" />
+                                                    <span>
+                                                        {new Date(startStr).toLocaleString("vi-VN", {
+                                                            weekday: "short",
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit"
+                                                        })}
+                                                        {endStr
+                                                            ? ` - ${new Date(endStr).toLocaleTimeString("vi-VN", {
+                                                                  hour: "2-digit",
+                                                                  minute: "2-digit"
+                                                              })}`
+                                                            : ""}
+                                                    </span>
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {ev.meetingUrl && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => openExternalBrowserUrl(ev.meetingUrl!)}
+                                                className="text-xs h-8 gap-1 text-teal-700 border-teal-200 hover:bg-teal-50 shrink-0"
+                                            >
+                                                <Video className="w-3.5 h-3.5" />
+                                                <span>Mở Meet</span>
+                                            </Button>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Right: Today's Tasks */}
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+                        <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <ClipboardCheck className="w-4 h-4 text-teal-700" />
+                            <span>Nhiệm vụ hôm nay</span>
+                        </CardTitle>
+                        <Link
+                            to="/study-plan"
+                            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                        >
+                            <span>Kế hoạch học tập</span>
+                            <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </CardHeader>
+                    <CardContent className="p-5 space-y-2.5">
+                        {!dashboard?.todayTasks || dashboard.todayTasks.length === 0 ? (
+                            <p className="text-xs text-slate-400 py-6 text-center">
+                                Bạn chưa có nhiệm vụ học tập nào cho hôm nay.
+                            </p>
+                        ) : (
+                            dashboard.todayTasks.map((task, idx) => {
+                                const taskId = task.taskId ?? task.id;
+                                const isDone = task.status === "DONE" || Boolean(task.completed);
+
+                                return (
+                                    <label
+                                        key={taskId ?? idx}
+                                        className={`p-3 rounded-xl border flex items-center justify-between gap-3 cursor-pointer transition-colors ${
+                                            isDone
+                                                ? "border-emerald-200 bg-emerald-50/40"
+                                                : "border-slate-200 bg-white hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <input
+                                                type="checkbox"
+                                                checked={isDone}
+                                                disabled={!taskId || togglingTaskId === taskId}
+                                                onChange={() => {
+                                                    if (taskId) {
+                                                        void handleToggleTodayTask(taskId, isDone);
+                                                    }
+                                                }}
+                                                className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                                            />
+                                            <span
+                                                className={`text-xs font-semibold truncate ${
+                                                    isDone
+                                                        ? "line-through text-slate-400"
+                                                        : "text-slate-900"
+                                                }`}
+                                            >
+                                                {task.title}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            {task.priority && (
+                                                <Badge
+                                                    variant={
+                                                        task.priority === "HIGH"
+                                                            ? "danger"
+                                                            : task.priority === "MEDIUM"
+                                                            ? "warning"
+                                                            : "outline"
+                                                    }
+                                                    className="text-[10px]"
+                                                >
+                                                    {task.priority === "HIGH"
+                                                        ? "Cao"
+                                                        : task.priority === "MEDIUM"
+                                                        ? "TB"
+                                                        : "Thấp"}
+                                                </Badge>
+                                            )}
+                                            <Badge
+                                                variant={isDone ? "success" : "info"}
+                                                className="text-[10px]"
+                                            >
+                                                {isDone ? "Xong" : "Cần làm"}
+                                            </Badge>
+                                        </div>
+                                    </label>
+                                );
+                            })
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             {/* Score Trend Chart */}
             <Card className="border-slate-200 shadow-sm">

@@ -27,7 +27,8 @@ export const MainLayout: React.FC = () => {
         if (path.startsWith("/notifications/settings")) return "Cài đặt thông báo";
         if (path.startsWith("/notifications")) return "Thông báo";
         if (path.startsWith("/messages")) return "Tin nhắn thời gian thực";
-        if (path.includes("schedule") || path.includes("calendar")) return "Lịch học";
+        if (path.startsWith("/study-plan")) return "Kế hoạch học tập & Mục tiêu";
+        if (path.includes("schedule") || path.includes("calendar")) return "Lịch học tổng hợp & Sự kiện";
         if (path.includes("report") || path.includes("statistic")) return "Báo cáo và thống kê";
         return "AI Study Assistant";
     };

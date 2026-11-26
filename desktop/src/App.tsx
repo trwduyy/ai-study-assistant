@@ -28,6 +28,8 @@ import ClassTestResultsPage from "./pages/ClassTestResultsPage";
 import TeacherDashboardPage from "./pages/TeacherDashboardPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import CalendarPage from "./pages/CalendarPage";
+import StudyPlanPage from "./pages/StudyPlanPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { Toaster } from "sonner";
 
@@ -74,10 +76,12 @@ const App: React.FC = () => {
                                 <Route path="notifications" element={<NotificationsPage />} />
                                 <Route path="notifications/settings" element={<NotificationsPage />} />
 
+                                {/* Schedule, Calendar, Goals, Tasks & AI Study Plan Modules (FE-3A) */}
+                                <Route path="schedule" element={<CalendarPage />} />
+                                <Route path="calendar" element={<CalendarPage />} />
+                                <Route path="study-plan" element={<StudyPlanPage />} />
+
                                 {/* Remaining Phased Placeholders */}
-                                <Route path="schedule" element={<PlaceholderPage title="Lịch học" description="Theo dõi lịch học, sự kiện và nhắc việc cá nhân." />} />
-                                <Route path="calendar" element={<PlaceholderPage title="Lịch học" description="Theo dõi lịch học, sự kiện và nhắc việc cá nhân." />} />
-                                <Route path="study-plan" element={<PlaceholderPage title="Kế hoạch học" description="Tạo mục tiêu và kế hoạch học tập cá nhân." />} />
                                 <Route path="meetings" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Cuộc họp" description="Quản lý cuộc họp, lịch học trực tuyến và liên kết tham gia." /></ProtectedRoute>} />
                                 <Route path="class-statistics" element={<ProtectedRoute allowedRoles={["TEACHER"]}><PlaceholderPage title="Thống kê lớp" description="Theo dõi tiến độ, điểm số và mức độ tham gia của lớp." /></ProtectedRoute>} />
                                 <Route path="users" element={<ProtectedRoute allowedRoles={["ADMIN"]}><PlaceholderPage title="Người dùng" description="Quản lý tài khoản, trạng thái và vai trò người dùng." /></ProtectedRoute>} />
